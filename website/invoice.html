@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice — DOCI</title>
+  <meta name="description" content="Invoice pembayaran DOCI.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="invoice" style="background:var(--color-cloud-100)">
+  <main id="main" class="container" style="padding-block:16px">
+    <div class="row no-print" style="max-width:560px;margin:0 auto;justify-content:space-between">
+      <a class="btn btn--ghost btn--sm" href="javascript:history.back()">← Kembali</a>
+      <button class="btn btn--sm" onclick="window.print()">Unduh PDF / Cetak</button>
+    </div>
+    <article class="invoice" id="inv" aria-label="Invoice"></article>
+  </main>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { Store, fmt, esc, qrSvg, logo, icon, statusChip } = DOCI;
+      const id = new URLSearchParams(location.search).get('inv');
+      const inv = Store.get('invoices', []).find(i => i.id === id);
+      const el = document.getElementById('inv');
+      if (!inv) { el.innerHTML = '<p>Invoice tidak ditemukan.</p>'; return; }
+      const fee = inv.fee || 0;
+      el.innerHTML = `<div class="invoice__head">${logo()}<div style="text-align:right"><div class="overline" style="margin:0">Invoice</div><b class="mono">${esc(inv.id)}</b><div class="small muted">${fmt.dateTime(inv.created)}</div></div></div>
+      <div class="row row--between" style="margin-bottom:16px;align-items:flex-start"><div><div class="small muted">Ditagihkan kepada</div><b>${esc((inv.profile && inv.profile.fullName) || inv.phone || 'Member DOCI')}</b><div class="small mono">${esc(inv.phone || '')}</div></div><div style="text-align:right">${statusChip(inv.status)}</div></div>
+      <table><thead><tr><th>Deskripsi</th><th>Jumlah</th></tr></thead><tbody>${inv.items.map(i => `<tr><td>${esc(i.label)}</td><td>${fmt.rpRaw(i.amount)}</td></tr>`).join('')}<tr><td>Biaya layanan${inv.method ? ' (' + esc(inv.method) + ')' : ''}</td><td>${fmt.rpRaw(fee)}</td></tr><tr class="total"><td>Total</td><td>${fmt.rpRaw(inv.amount + fee)}</td></tr></tbody></table>
+      <div class="row row--between" style="margin-top:24px;align-items:flex-end"><div class="small muted">${inv.paidAt ? 'Dibayar pada ' + fmt.dateTime(inv.paidAt) : 'Batas bayar ' + fmt.dateTime(inv.expires)}<br>Dokumen ini dibuat otomatis dan sah tanpa tanda tangan.</div><div style="text-align:center">${qrSvg(inv.id, 84)}<div class="small muted" style="font-size:10px">Verifikasi</div></div></div>`;
+    })();
+  </script>
+</body>
+</html>

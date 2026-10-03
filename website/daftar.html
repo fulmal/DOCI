@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daftar Menjadi Member DOCI — Formulir Bertahap & Pembayaran Otomatis</title>
+  <meta name="description" content="Daftar menjadi member DOCI dalam 6 langkah: verifikasi nomor, data pribadi, kendaraan, chapter & dokumen, persetujuan, lalu bayar otomatis.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="membership">
+  <div id="site-header"></div>
+  <main id="main" style="background:var(--color-cloud-100);padding:var(--space-5) 0 var(--space-8)">
+    <div class="container form-shell">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="index.html">Beranda</a></li><li><a href="membership.html">Keanggotaan</a></li><li><span aria-current="page">Pendaftaran Member</span></li></ol></nav>
+      <div class="stepper" aria-label="Progres pendaftaran">
+        <div class="stepper__bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" id="sp-bar"><span></span></div>
+        <div class="stepper__label"><span id="sp-label"></span><span id="draft-label" aria-live="polite"></span></div>
+        <ol class="stepper__dots" id="sp-dots"></ol>
+      </div>
+
+      <div class="card" id="step-card">
+        <h1 id="step-title" style="font-size:24px"></h1>
+        <p class="muted" id="step-desc"></p>
+        <form id="step-form" novalidate></form>
+      </div>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/otp.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, fmt, Store, Auth, toast, OtpFlow, Audit } = DOCI;
+      if (Auth.current() && Auth.current().status === 'aktif') { /* member aktif boleh melihat; tetap lanjut untuk demo */ }
+      const STEPS = [
+        { t: 'Verifikasi Nomor Telepon', s: 'Nomor telepon menjadi identitas utama akun Anda.', short: 'Verifikasi' },
+        { t: 'Data Pribadi', s: 'Isi data sesuai identitas. Hanya data yang benar-benar diperlukan.', short: 'Data Pribadi' },
+        { t: 'Data Kendaraan', s: 'Beritahu kami Ducati yang Anda kendarai.', short: 'Kendaraan' },
+        { t: 'Chapter & Dokumen', s: 'Pilih chapter terdekat dan unggah dokumen persyaratan.', short: 'Chapter & Dokumen' },
+        { t: 'Persetujuan', s: 'Baca dan setujui ketentuan berikut untuk melanjutkan.', short: 'Persetujuan' },
+        { t: 'Ringkasan & Biaya', s: 'Periksa kembali data Anda sebelum membayar.', short: 'Bayar' }
+      ];
+      let draft = Store.get('draft', { step: 0, phone: null, data: {}, files: {}, agree: {} });
+      const form = document.getElementById('step-form');
+      const save = () => { Store.set('draft', draft); document.getElementById('draft-label').textContent = 'Draft tersimpan ' + fmt.time(new Date()).replace(' WIB', ''); };
+      const dots = document.getElementById('sp-dots');
+      dots.innerHTML = STEPS.map((s, i) => `<li><span class="n">${i + 1}</span>${s.short}</li>`).join('');
+
+      const fieldErr = (el, msg) => { const f = el.closest('.field'); if (!f) return; f.classList.toggle('has-error', !!msg); const e = f.querySelector('.error-text span'); if (e && msg) e.textContent = msg; el.setAttribute('aria-invalid', !!msg); };
+      const F = (id, label, { type = 'text', req = true, ph = '', help = '', value = '', ac = '', attrs = '' } = {}) => `
+        <div class="field"><label for="${id}">${label}${req ? '<span class="req" aria-hidden="true">*</span>' : ' <span class="muted small">(opsional)</span>'}</label>
+        <input class="input" id="${id}" name="${id}" type="${type}" placeholder="${ph}" value="${esc(value)}" ${req ? 'required' : ''} ${ac ? `autocomplete="${ac}"` : ''} aria-describedby="${id}-e ${help ? id + '-h' : ''}" ${attrs}>
+        ${help ? `<span class="help" id="${id}-h">${help}</span>` : ''}<span class="error-text" id="${id}-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>`;
+      const d = () => draft.data;
+
+      function render() {
+        const i = draft.step, S = STEPS[i];
+        document.getElementById('step-title').textContent = S.t;
+        document.getElementById('step-desc').textContent = S.s;
+        document.getElementById('sp-label').innerHTML = `<b>${i + 1} dari 6</b> — ${S.short}`;
+        const bar = document.getElementById('sp-bar'); bar.setAttribute('aria-valuenow', i + 1); bar.firstElementChild.style.width = ((i + 1) / 6 * 100) + '%';
+        dots.querySelectorAll('li').forEach((li, k) => { li.classList.toggle('is-done', k < i); li.classList.toggle('is-current', k === i); li.querySelector('.n').innerHTML = k < i ? icon('check', 'icon--16') : (k + 1); });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        form.innerHTML = ''; form.onsubmit = null; form.oninput = null;
+        ({ 0: s0, 1: s1, 2: s2, 3: s3, 4: s4, 5: s5 })[i]();
+        document.getElementById('step-title').focus?.();
+      }
+
+      const nav = (last = false, label = 'Lanjutkan') => `<div class="form-actions form-actions--sticky"><button type="button" class="btn btn--ghost" data-back ${draft.step === 0 ? 'hidden' : ''}>${icon('chev-left', 'icon--16')}Kembali</button><button class="btn ${last ? 'btn--lg' : ''}" type="submit">${label}</button></div>`;
+      const wireNav = (validate) => {
+        form.querySelector('[data-back]')?.addEventListener('click', () => { collect(); draft.step--; save(); render(); });
+        form.oninput = (e) => { collect(); save(); if (e.target.closest('.field')?.classList.contains('has-error')) fieldErr(e.target, ''); };
+        form.onsubmit = (e) => { e.preventDefault(); collect(); if (validate()) { draft.step++; save(); render(); } else { const bad = form.querySelector('.has-error input, .has-error select, .has-error textarea, .has-error [type=checkbox]'); bad?.focus(); toast({ type: 'warning', msg: 'Ada isian yang perlu dilengkapi. Cek kolom bertanda merah ya.' }); } };
+      };
+      const collect = () => { form.querySelectorAll('input:not([type=file]):not([type=checkbox]), select, textarea').forEach(el => { if (el.name) draft.data[el.name] = el.value; }); form.querySelectorAll('input[type=checkbox][name]').forEach(el => { draft.agree[el.name] = el.checked; }); };
+      const req = (id, msg, test) => { const el = form.querySelector('#' + id); const v = (el.value || '').trim(); const bad = !v || (test && !test(v)); fieldErr(el, bad ? (v ? test.msg || msg : msg) : ''); return !bad; };
+
+      /* Step 1 — OTP */
+      function s0() {
+        if (draft.phone) {
+          form.innerHTML = `<div class="banner banner--success">${icon('check-circle')}<div><b>Nomor terverifikasi</b><span class="mono">${fmt.phone(draft.phone)}</span></div></div>
+            <div class="form-actions"><button type="button" class="btn btn--ghost" id="chg">Ganti nomor</button><button class="btn" type="button" id="go">Lanjutkan</button></div>`;
+          form.querySelector('#go').onclick = () => { draft.step = 1; save(); render(); };
+          form.querySelector('#chg').onclick = () => { draft.phone = null; save(); render(); };
+          return;
+        }
+        form.innerHTML = '<div id="otp-root"></div>';
+        OtpFlow({ root: form.querySelector('#otp-root'), mode: 'signup', cta: 'Kirim OTP', onVerified(p) { draft.phone = p; draft.step = 1; save(); render(); } });
+      }
+      /* Step 2 — pribadi */
+      function s1() {
+        form.innerHTML = F('fullName', 'Nama lengkap (sesuai KTP)', { ac: 'name', value: d().fullName || '', ph: 'mis. Raka Pratama' }) +
+          `<div class="form-row form-row--2">${F('birth', 'Tanggal lahir', { type: 'date', value: d().birth || '', ac: 'bday' })}${F('city', 'Kota domisili', { value: d().city || '', ph: 'mis. Jakarta Selatan', ac: 'address-level2' })}</div>` +
+          F('email', 'Email', { type: 'email', req: false, value: d().email || '', ph: 'nama@email.com', ac: 'email', help: 'Untuk invoice & pemulihan akun. Direkomendasikan.' }) +
+          `<div class="field"><label for="photo">Foto profil <span class="muted small">(opsional)</span></label><input class="input" type="file" id="photo" accept="image/png,image/jpeg,image/webp"><span class="help">JPG/PNG/WebP, maks 5 MB.</span></div>` + nav();
+        wireNav(() => {
+          let ok = true;
+          ok = req('fullName', 'Nama lengkap wajib diisi.', Object.assign(v => v.length >= 3, { msg: 'Nama minimal 3 huruf.' })) && ok;
+          const b = form.querySelector('#birth'); const age = (Date.now() - new Date(b.value)) / 31557600000;
+          if (!b.value) { fieldErr(b, 'Tanggal lahir wajib diisi.'); ok = false; } else if (age < 17) { fieldErr(b, 'Usia minimal 17 tahun untuk bergabung.'); ok = false; }
+          ok = req('city', 'Kota domisili wajib diisi.') && ok;
+          const em = form.querySelector('#email'); if (em.value && !/^\S+@\S+\.\S+$/.test(em.value)) { fieldErr(em, 'Format email belum sesuai, mis. nama@email.com.'); ok = false; }
+          return ok;
+        });
+      }
+      /* Step 3 — kendaraan */
+      function s2() {
+        const models = ['Panigale V4', 'Panigale V2', 'Streetfighter V4', 'Streetfighter V2', 'Monster', 'Multistrada V4', 'DesertX', 'Hypermotard', 'Diavel V4', 'SuperSport', 'Scrambler', 'Lainnya'];
+        form.innerHTML = `<div class="field"><label for="model">Model Ducati<span class="req" aria-hidden="true">*</span></label><select class="select" id="model" name="model" required aria-describedby="model-e"><option value="">Pilih model…</option>${models.map(m => `<option ${d().model === m ? 'selected' : ''}>${m}</option>`).join('')}</select><span class="error-text" id="model-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>` +
+          `<div class="form-row form-row--2">${F('year', 'Tahun kendaraan', { type: 'number', value: d().year || '', ph: '2023', attrs: 'min="1990" max="2027" inputmode="numeric"' })}${F('color', 'Warna', { value: d().color || '', ph: 'Merah' })}</div>` +
+          F('plate', 'Nomor registrasi (plat)', { value: d().plate || '', ph: 'B 1234 XYZ', help: 'Tidak akan ditampilkan di direktori publik.', attrs: 'style="text-transform:uppercase"' }) +
+          `<div class="field"><label for="bikephoto">Foto kendaraan <span class="muted small">(opsional)</span></label><input class="input" type="file" id="bikephoto" accept="image/*"></div>` + nav();
+        wireNav(() => {
+          let ok = req('model', 'Pilih model Ducati Anda.');
+          const y = form.querySelector('#year'); if (!y.value || +y.value < 1990 || +y.value > 2027) { fieldErr(y, 'Isi tahun antara 1990–2027.'); ok = false; }
+          ok = req('color', 'Warna wajib diisi.') && ok; ok = req('plate', 'Nomor registrasi wajib diisi.') && ok; return ok;
+        });
+      }
+      /* Step 4 — chapter & dokumen */
+      function docField(key, label, extra) {
+        const f = draft.files[key];
+        return `<div class="field" data-doc="${key}"><span class="field-label">${label}<span class="req" aria-hidden="true">*</span></span>
+          <label class="dropzone" for="${key}" style="display:block">${icon('upload', 'icon--32')}<b>Pilih berkas</b> atau tarik ke sini<div class="help">JPG, PNG, atau PDF · maks 5 MB${extra || ''}</div></label>
+          <input class="sr-only" type="file" id="${key}" accept="image/png,image/jpeg,application/pdf" aria-describedby="${key}-e">
+          <div class="file-list" id="${key}-l">${f ? fileRow(f, 100) : ''}</div>
+          <span class="error-text" id="${key}-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>`;
+      }
+      const fileRow = (f, pct) => `<div class="file-row">${icon(pct === 100 ? 'check-circle' : 'file', 'icon--24')}<div class="grow"><b>${esc(f.name)}</b><span>${(f.size / 1024 / 1024).toFixed(2)} MB · ${pct === 100 ? 'Terunggah' : pct + '%'}</span>${pct < 100 ? `<div class="progress"><span style="width:${pct}%"></span></div>` : ''}</div></div>`;
+      function s3() {
+        form.innerHTML = `<div class="field"><label for="chapter">Chapter<span class="req" aria-hidden="true">*</span></label><select class="select" id="chapter" name="chapter" required aria-describedby="chapter-e"><option value="">Pilih chapter terdekat…</option>${D.CHAPTERS.map(c => `<option value="${c.id}" ${d().chapter === c.id ? 'selected' : ''}>${c.name} — ${c.city}</option>`).join('')}</select><span class="error-text" id="chapter-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>` +
+          F('referral', 'Referensi anggota', { req: false, value: d().referral || '', ph: 'Member ID atau nama (jika ada)' }) +
+          `<div class="field"><label for="reason">Alasan bergabung <span class="muted small">(opsional)</span></label><textarea class="textarea" id="reason" name="reason" style="min-height:88px">${esc(d().reason || '')}</textarea></div>` +
+          docField('docKtp', 'KTP') + docField('docSim', 'SIM C') + nav();
+        ['docKtp', 'docSim'].forEach(key => {
+          const inp = form.querySelector('#' + key), list = form.querySelector('#' + key + '-l');
+          inp.addEventListener('change', () => {
+            const file = inp.files[0]; if (!file) return;
+            if (file.size > 5 * 1024 * 1024) return fieldErr(inp, 'Ukuran berkas melebihi 5 MB. Kompres dulu ya.');
+            if (!/^(image\/(png|jpeg)|application\/pdf)$/.test(file.type)) return fieldErr(inp, 'Format harus JPG, PNG, atau PDF.');
+            fieldErr(inp, ''); let p = 0; const meta = { name: file.name, size: file.size };
+            const t = setInterval(() => { p = Math.min(100, p + 20 + Math.random() * 25); list.innerHTML = fileRow(meta, Math.round(p)); if (p >= 100) { clearInterval(t); draft.files[key] = meta; save(); list.innerHTML = fileRow(meta, 100); } }, 180);
+          });
+        });
+        wireNav(() => {
+          let ok = req('chapter', 'Pilih chapter Anda.');
+          ['docKtp', 'docSim'].forEach(k => { const el = form.querySelector('#' + k); if (!draft.files[k]) { fieldErr(el, 'Dokumen ini wajib diunggah.'); ok = false; } });
+          return ok;
+        });
+      }
+      /* Step 5 — persetujuan */
+      function s4() {
+        const items = [['agreeArt', 'Saya telah membaca dan menyetujui <a href="dokumen.html" target="_blank">AD/ART</a> DOCI.'], ['agreeEtik', 'Saya menyetujui <a href="dokumen.html" target="_blank">Kode Etik Anggota</a>, termasuk aturan keselamatan berkendara.'], ['agreePriv', 'Saya menyetujui <a href="dokumen.html" target="_blank">Kebijakan Privasi</a> dan pemrosesan data pribadi sesuai UU PDP.'], ['agreeTruth', 'Saya menyatakan seluruh data yang saya isi adalah benar.']];
+        form.innerHTML = `<div class="banner banner--info" style="margin-bottom:16px">${icon('shield')}<div><b>Jejak persetujuan tercatat</b>Waktu & versi dokumen disimpan untuk audit (v2024.1 · ${fmt.date(new Date())}).</div></div>` +
+          items.map(([n, t]) => `<div class="field" style="margin:0"><label class="check"><input type="checkbox" name="${n}" ${draft.agree[n] ? 'checked' : ''} aria-describedby="${n}-e"><span>${t}</span></label><span class="error-text" id="${n}-e" role="alert">${icon('alert', 'icon--16')}<span>Centang untuk melanjutkan.</span></span></div>`).join('') + nav();
+        wireNav(() => { let ok = true; items.forEach(([n]) => { const el = form.querySelector(`[name=${n}]`); fieldErr(el, el.checked ? '' : 'x'); if (!el.checked) ok = false; }); return ok; });
+      }
+      /* Step 6 — ringkasan */
+      function s5() {
+        const c = D.CHAPTERS.find(x => x.id === d().chapter);
+        form.innerHTML = `<dl class="kv"><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Kendaraan</dt><dd>Ducati ${esc(d().model)} · ${esc(d().year)} · ${esc(d().color)}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah</dd></div></dl>
+        <h3 style="margin:24px 0 8px;font-size:17px">Rincian Biaya</h3>
+        <dl class="kv kv--total"><div><dt>Biaya pendaftaran</dt><dd class="num">Rp 150.000</dd></div><div><dt>Iuran tahunan (12 bulan)</dt><dd class="num">Rp 100.000</dd></div><div><dt>Total</dt><dd class="num">Rp 250.000</dd></div></dl>
+        <p class="help" style="margin-top:8px">Biaya layanan metode pembayaran (jika ada) ditampilkan di langkah berikutnya. Pembayaran otomatis — tidak perlu unggah bukti transfer.</p>
+        <div class="form-actions form-actions--sticky"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button><button class="btn btn--lg" type="submit">Bayar Rp 250.000</button></div>`;
+        form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
+        form.onsubmit = (e) => {
+          e.preventDefault(); const b = form.querySelector('[type=submit]'); b.setAttribute('aria-busy', 'true'); b.textContent = 'Memproses…';
+          const now = new Date(), seq = String(Math.floor(10000 + Math.random() * 89999));
+          const inv = { id: 'INV/DOCI/' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '/' + seq, regNo: 'REG-' + String(now.getFullYear()).slice(2) + String(now.getMonth() + 1).padStart(2, '0') + '-' + seq, type: 'membership', title: 'Membership Baru DOCI', phone: draft.phone,
+            items: [{ label: 'Biaya pendaftaran', amount: 150000 }, { label: 'Iuran tahunan (12 bulan)', amount: 250000 - 150000 }], amount: 250000, status: 'menunggu', created: now.toISOString(), expires: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
+            profile: Object.assign({}, draft.data, { phone: draft.phone }) };
+          const all = Store.get('invoices', []); all.unshift(inv); Store.set('invoices', all);
+          Audit.log('buat invoice', inv.id, null, { status: 'menunggu' });
+          setTimeout(() => { location.href = 'bayar.html?inv=' + encodeURIComponent(inv.id); }, 500);
+        };
+      }
+      if (draft.step > 0 && !draft.phone) draft.step = 0;
+      render();
+    })();
+  </script>
+</body>
+</html>

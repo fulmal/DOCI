@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Panel — DOCI</title>
+  <meta name="description" content="Panel administrasi DOCI: member, kegiatan, dokumentasi, pembayaran, live tracking, dan audit log.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#141416">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css"><link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="adm-body" data-page="admin">
+  <div id="app"></div>
+
+  <dialog class="side" id="side-dlg" aria-labelledby="side-title"></dialog>
+
+  <dialog class="modal modal--lg" id="ev-dlg" aria-labelledby="ev-title">
+    <form id="ev-form" novalidate>
+      <div class="modal__head"><h2 id="ev-title">Kegiatan</h2><button type="button" class="icon-btn" data-close aria-label="Tutup" data-ic="x"></button></div>
+      <div class="modal__body stack">
+        <div class="field"><label class="field-label" for="ev-t">Judul kegiatan <span class="req">*</span></label><input class="input" id="ev-t" required maxlength="90"></div>
+        <div class="form-row form-row--3">
+          <div class="field"><label class="field-label" for="ev-c">Kategori</label><select class="select" id="ev-c"></select></div>
+          <div class="field"><label class="field-label" for="ev-ch">Chapter</label><select class="select" id="ev-ch"></select></div>
+          <div class="field"><label class="field-label" for="ev-s">Status</label><select class="select" id="ev-s"><option value="draft">Draft</option><option value="terbit">Terbit</option><option value="berlangsung">Berlangsung</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field"><label class="field-label" for="ev-st">Mulai <span class="req">*</span></label><input class="input" id="ev-st" type="datetime-local" required></div>
+          <div class="field"><label class="field-label" for="ev-en">Selesai <span class="req">*</span></label><input class="input" id="ev-en" type="datetime-local" required></div>
+        </div>
+        <div class="field"><label class="field-label" for="ev-l">Lokasi <span class="req">*</span></label><input class="input" id="ev-l" required></div>
+        <div class="form-row form-row--2">
+          <div class="field"><label class="field-label" for="ev-p">Biaya (Rp, 0 = gratis)</label><input class="input" id="ev-p" type="number" min="0" step="1000" value="0"></div>
+          <div class="field"><label class="field-label" for="ev-q">Kuota peserta</label><input class="input" id="ev-q" type="number" min="1" value="50"></div>
+        </div>
+        <div class="field"><label class="field-label" for="ev-d">Deskripsi</label><textarea class="textarea" id="ev-d" rows="4"></textarea></div>
+        <p class="error-text" id="ev-err" role="alert" hidden></p>
+      </div>
+      <div class="modal__foot"><button type="button" class="btn btn--ghost" data-close>Batal</button><button class="btn" type="submit">Simpan Kegiatan</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal modal--lg" id="news-dlg" aria-labelledby="news-title">
+    <form id="news-form" novalidate>
+      <div class="modal__head"><h2 id="news-title">Artikel</h2><button type="button" class="icon-btn" data-close aria-label="Tutup" data-ic="x"></button></div>
+      <div class="modal__body stack">
+        <div class="field"><label class="field-label" for="n-t">Judul <span class="req">*</span></label><input class="input" id="n-t" required maxlength="140"></div>
+        <div class="form-row form-row--2">
+          <div class="field"><label class="field-label" for="n-c">Kategori</label><select class="select" id="n-c"><option>Berita Klub</option><option>Laporan Kegiatan</option><option>Artikel</option></select></div>
+          <div class="field"><label class="field-label" for="n-s">Status</label><select class="select" id="n-s"><option value="draft">Draft</option><option value="terbit">Terbit</option></select></div>
+        </div>
+        <div class="field"><label class="field-label" for="n-b">Isi artikel <span class="req">*</span></label><textarea class="textarea" id="n-b" rows="8" required></textarea><div class="help">Pisahkan paragraf dengan baris kosong.</div></div>
+        <p class="error-text" id="n-err" role="alert" hidden></p>
+      </div>
+      <div class="modal__foot"><button type="button" class="btn btn--ghost" data-close>Batal</button><button class="btn" type="submit">Simpan</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="refund-dlg" aria-labelledby="refund-title">
+    <form id="refund-form" novalidate>
+      <div class="modal__head"><h2 id="refund-title">Proses Refund</h2><button type="button" class="icon-btn" data-close aria-label="Tutup" data-ic="x"></button></div>
+      <div class="modal__body stack" id="refund-body"></div>
+      <div class="modal__foot"><button type="button" class="btn btn--ghost" data-close>Batal</button><button class="btn btn--danger" type="submit">Proses Refund</button></div>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/tracking.js"></script><script src="assets/js/admin.js"></script>
+</body>
+</html>

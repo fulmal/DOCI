@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter DOCI — Temukan Komunitas di Kotamu</title>
+  <meta name="description" content="Daftar chapter Komunitas Ducati Indonesia di berbagai kota lengkap dengan agenda rutin dan jumlah anggota.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="chapter">
+  <div id="site-header"></div>
+  <main id="main">
+    <div id="page-head"></div>
+    <section class="section" style="padding-top:var(--space-5)">
+      <div class="container">
+        <div class="banner banner--warning small" style="margin-bottom:var(--space-5)"><span id="ic-w"></span><div><b>Data contoh</b>Jumlah anggota, agenda, dan koordinator chapter adalah ilustrasi dan akan diganti data resmi pengurus.</div></div>
+        <div id="chapter-map" role="region" aria-label="Peta lokasi chapter"></div>
+        <div class="field" style="margin:var(--space-5) 0 var(--space-4);max-width:420px"><label class="sr-only" for="q">Cari chapter</label><input class="input" id="q" type="search" placeholder="Cari kota atau chapter"></div>
+        <div class="grid grid-3" id="grid"></div>
+      </div>
+    </section>
+    <div id="join"></div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, pageHead, joinCta, $ } = DOCI;
+      $('#page-head').innerHTML = pageHead('Chapter DOCI', 'Setiap kota punya keluarganya sendiri. Temukan chapter terdekat dan ikut kopdar berikutnya.', []);
+      $('#ic-w').innerHTML = icon('alert'); $('#join').innerHTML = joinCta();
+      const total = D.CHAPTERS.reduce((a, c) => a + c.members, 0);
+      let map = null, markers = {};
+      if (window.L) {
+        try {
+          map = L.map('chapter-map', { scrollWheelZoom: false }).setView([-2.5, 117], 4);
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
+          D.CHAPTERS.forEach(c => {
+            markers[c.id] = L.marker([c.lat, c.lng], { title: c.name, icon: L.divIcon({ className: '', html: `<div class="flag-mk" style="background:#D5001C">${icon('pin', 'icon--16')}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] }) }).addTo(map).bindPopup(`<b>${esc(c.name)}</b><br>${c.members} anggota`);
+          });
+        } catch (e) { map = null; }
+      }
+      if (!map) $('#chapter-map').innerHTML = `<div class="map-fallback" style="position:static;height:100%"><div class="empty" style="padding:0">${icon('map')}<h3>Peta belum bisa dimuat</h3><p>Daftar chapter tetap tersedia di bawah.</p></div></div>`;
+      function render() {
+        const q = $('#q').value.trim().toLowerCase();
+        const l = D.CHAPTERS.filter(c => (c.name + ' ' + c.city).toLowerCase().includes(q));
+        $('#grid').innerHTML = l.length ? l.map(c => `<article class="card chapter-card">
+          <span class="chip chip--red">${icon('users')}${c.members} anggota</span>
+          <h3 style="margin-top:10px">${esc(c.name)}</h3>
+          <div class="chapter-meta"><span>${icon('pin')}${esc(c.city)}</span><span>${icon('calendar')}${esc(c.agenda)}</span><span>${icon('user')}${esc(c.coord)}</span></div>
+          <div class="row"><a class="btn btn--secondary btn--sm" href="kegiatan.html?chapter=${c.id}">${icon('calendar', 'icon--16')}Kegiatan</a>${map ? `<button class="btn btn--ghost btn--sm" data-focus="${c.id}">${icon('mapfocus', 'icon--16')}Lihat di Peta</button>` : ''}</div></article>`).join('')
+          : `<div class="empty" style="grid-column:1/-1">${icon('map')}<h3>Chapter tidak ditemukan</h3><p>Belum ada chapter di kota tersebut. <a href="kontak.html">Hubungi kami</a> untuk mengusulkan chapter baru.</p></div>`;
+      }
+      $('#q').addEventListener('input', render);
+      $('#grid').addEventListener('click', e => { const b = e.target.closest('[data-focus]'); if (!b || !map) return; const c = D.CHAPTERS.find(x => x.id === b.dataset.focus); map.flyTo([c.lat, c.lng], 9, { duration: .8 }); markers[c.id].openPopup(); $('#chapter-map').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+      render();
+      document.querySelector('.page-head p').insertAdjacentHTML('beforeend', ` <b>${total.toLocaleString('id-ID')}</b> anggota di ${D.CHAPTERS.length} chapter.`);
+    })();
+  </script>
+</body>
+</html>

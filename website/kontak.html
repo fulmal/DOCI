@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kontak — DOCI | Hubungi Sekretariat</title>
+  <meta name="description" content="Hubungi sekretariat Komunitas Ducati Indonesia untuk pertanyaan keanggotaan, kegiatan, kerja sama, atau pembentukan chapter.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="kontak">
+  <div id="site-header"></div>
+  <main id="main">
+    <div id="page-head"></div>
+    <section class="section" style="padding-top:var(--space-5)">
+      <div class="container contact-grid">
+        <div>
+          <h2 style="font-size:var(--text-h3)">Sekretariat DOCI</h2>
+          <div class="contact-item"><span class="feature__icon" id="i1"></span><div><b>Alamat</b><span class="muted">Jakarta, Indonesia<br>(alamat lengkap menyusul)</span></div></div>
+          <div class="contact-item"><span class="feature__icon" id="i2"></span><div><b>WhatsApp</b><span class="muted">+62 812-0000-0000 (contoh)</span></div></div>
+          <div class="contact-item"><span class="feature__icon" id="i3"></span><div><b>Email</b><a href="mailto:halo@doci.example">halo@doci.example</a></div></div>
+          <div class="contact-item"><span class="feature__icon" id="i4"></span><div><b>Jam layanan</b><span class="muted">Senin–Jumat, 09.00–17.00 WIB</span></div></div>
+          <div class="banner banner--warning small" style="margin-top:var(--space-4)"><span id="i5"></span><div><b>Kontak contoh</b>Nomor, email, dan alamat di halaman ini adalah placeholder sampai data resmi tersedia.</div></div>
+        </div>
+        <div>
+          <div class="card" id="form-card">
+            <h2 class="card-title">Kirim Pesan</h2>
+            <form id="form" novalidate class="stack">
+              <div class="form-row form-row--2">
+                <div class="field"><label class="field-label" for="nama">Nama lengkap <span class="req">*</span></label><input class="input" id="nama" autocomplete="name" required></div>
+                <div class="field"><label class="field-label" for="kontak">Email atau WhatsApp <span class="req">*</span></label><input class="input" id="kontak" autocomplete="email" required></div>
+              </div>
+              <div class="field"><label class="field-label" for="topik">Topik</label><select class="select" id="topik"><option>Keanggotaan</option><option>Kegiatan</option><option>Pembayaran</option><option>Kerja sama / sponsor</option><option>Pembentukan chapter</option><option>Lainnya</option></select></div>
+              <div class="field"><label class="field-label" for="pesan">Pesan <span class="req">*</span></label><textarea class="textarea" id="pesan" rows="5" required minlength="10"></textarea></div>
+              <div class="field"><label class="field-label" for="cap">Verifikasi: <span id="cap-q"></span> <span class="req">*</span></label><input class="input" id="cap" inputmode="numeric" style="max-width:140px" required></div>
+              <p class="error-text" id="err" role="alert" hidden></p>
+              <button class="btn" type="submit">Kirim Pesan</button>
+              <p class="small muted" style="margin:0">Kami membalas dalam 1–2 hari kerja. Data Anda hanya dipakai untuk menanggapi pesan ini.</p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { icon, pageHead, Audit, $ } = DOCI;
+      $('#page-head').innerHTML = pageHead('Kontak', 'Ada pertanyaan seputar keanggotaan, kegiatan, atau kerja sama? Kami siap membantu.', []);
+      ['pin', 'phone', 'mail', 'clock'].forEach((n, i) => $('#i' + (i + 1)).innerHTML = icon(n, 'icon--24'));
+      $('#i5').innerHTML = icon('alert');
+      let a = 0, b = 0;
+      const newCap = () => { a = 2 + Math.floor(Math.random() * 7); b = 2 + Math.floor(Math.random() * 7); $('#cap-q').textContent = `${a} + ${b} = ?`; $('#cap').value = ''; };
+      newCap();
+      $('#form').addEventListener('submit', (e) => {
+        e.preventDefault(); const err = $('#err');
+        const v = (id) => $('#' + id).value.trim();
+        let msg = '';
+        if (!v('nama')) msg = 'Nama wajib diisi.';
+        else if (!v('kontak')) msg = 'Isi email atau nomor WhatsApp agar kami bisa membalas.';
+        else if (v('pesan').length < 10) msg = 'Pesan terlalu singkat. Tulis minimal 10 karakter.';
+        else if (+v('cap') !== a + b) { msg = 'Jawaban verifikasi belum tepat. Coba lagi.'; newCap(); }
+        if (msg) { err.textContent = msg; err.hidden = false; return; }
+        err.hidden = true; Audit.log('kirim pesan kontak', v('topik'));
+        $('#form-card').innerHTML = `<div class="empty" style="padding:var(--space-6) 0"><span style="color:var(--color-success)">${icon('check-circle')}</span><h3>Pesan terkirim</h3><p>Terima kasih, ${DOCI.esc(v('nama').split(' ')[0] || '')}. Tim sekretariat akan membalas dalam 1–2 hari kerja.</p><a class="btn btn--secondary" href="index.html">Kembali ke Beranda</a></div>`;
+      });
+    })();
+  </script>
+</body>
+</html>

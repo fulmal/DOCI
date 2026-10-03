@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pembayaran — DOCI | Status Otomatis via Payment Gateway</title>
+  <meta name="description" content="Selesaikan pembayaran membership atau kegiatan DOCI. Status diperbarui otomatis tanpa upload bukti transfer.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="membership">
+  <div id="site-header"></div>
+  <main id="main" style="background:var(--color-cloud-100);padding:var(--space-5) 0 var(--space-8)">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="index.html">Beranda</a></li><li><span aria-current="page">Pembayaran</span></li></ol></nav>
+      <h1 style="font-size:28px">Pembayaran</h1>
+      <div id="pay-root"></div>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, fmt, Store, Auth, toast, Audit, qrSvg, logo } = DOCI;
+      const root = document.getElementById('pay-root');
+      const id = new URLSearchParams(location.search).get('inv');
+      let invs = Store.get('invoices', []);
+      let inv = invs.find(i => i.id === id);
+      const persist = () => { invs = Store.get('invoices', []); const k = invs.findIndex(i => i.id === inv.id); invs[k] = inv; Store.set('invoices', invs); };
+
+      if (!inv) {
+        root.innerHTML = `<div class="card empty">${icon('receipt')}<h3>Invoice tidak ditemukan</h3><p>Tautan pembayaran mungkin salah atau sudah tidak berlaku. Mulai ulang dari pendaftaran atau kegiatan yang Anda pilih.</p><div class="btn-group" style="justify-content:center"><a class="btn" href="membership.html">Ke Halaman Join Us</a><a class="btn btn--secondary" href="kegiatan.html">Lihat Kegiatan</a></div></div>`;
+        return;
+      }
+
+      const METHODS = [
+        { g: 'Virtual Account', ic: 'bank', items: [['bca', 'BCA Virtual Account', 'BCA', 'va'], ['bni', 'BNI Virtual Account', 'BNI', 'va'], ['bri', 'BRI Virtual Account', 'BRI', 'va'], ['mandiri', 'Mandiri Bill / VA', 'MDR', 'va']] },
+        { g: 'QRIS', ic: 'qr', items: [['qris', 'QRIS (semua e-wallet & m-banking)', 'QR', 'qris']] },
+        { g: 'E-wallet', ic: 'wallet', items: [['gopay', 'GoPay', 'GP', 'ew'], ['ovo', 'OVO', 'OVO', 'ew'], ['dana', 'DANA', 'DNA', 'ew'], ['shopeepay', 'ShopeePay', 'SP', 'ew']] },
+        { g: 'Kartu Kredit / Debit', ic: 'card', items: [['card', 'Visa / Mastercard / JCB (3D Secure)', 'CC', 'card']] }
+      ];
+      const feeOf = (kind, amt) => ({ va: 4000, qris: Math.round(amt * .007), ew: Math.round(amt * .015), card: Math.round(amt * .029 + 2000) }[kind]);
+      const mById = (k) => METHODS.flatMap(g => g.items).find(i => i[0] === k);
+
+      const evt = inv.type === 'event' ? D.EVENTS.find(e => e.id === inv.eventId) : null;
+      let selected = inv.method || 'bca', checking = false, timer = null, poll = null;
+
+      // otomatis kedaluwarsa
+      function checkExpiry() { if (inv.status === 'menunggu' && new Date(inv.expires) < new Date()) { inv.status = 'kedaluwarsa'; persist(); toast({ type: 'warning', title: 'Invoice kedaluwarsa', msg: 'Batas waktu pembayaran terlewati. Anda bisa membayar ulang.' }); return true; } return false; }
+
+      function summary() {
+        const fee = inv.fee || 0, total = inv.amount + fee;
+        return `<aside class="card"><h2 style="font-size:18px">Ringkasan Tagihan</h2>
+          <div class="row row--between" style="margin-bottom:8px"><span class="muted small">No. Invoice</span><span class="mono small">${esc(inv.id)}</span></div>
+          ${inv.regNo ? `<div class="row row--between" style="margin-bottom:8px"><span class="muted small">No. Pendaftaran</span><span class="mono small">${esc(inv.regNo)}</span></div>` : ''}
+          <div class="field-label" style="margin:12px 0 4px">${esc(inv.title)}</div>
+          <dl class="kv kv--total">${inv.items.map(i => `<div><dt>${esc(i.label)}</dt><dd class="num">${fmt.rpRaw(i.amount)}</dd></div>`).join('')}
+            <div><dt>Biaya layanan</dt><dd class="num">${inv.method ? fmt.rpRaw(fee) : '<span class="muted" style="font-weight:400">Pilih metode</span>'}</dd></div>
+            <div><dt>Total</dt><dd class="num" id="total-amt">${fmt.rpRaw(total)}</dd></div></dl>
+          ${inv.status === 'menunggu' ? `<hr><div class="muted small">Bayar sebelum</div><div class="small" style="font-weight:600">${fmt.dateTime(inv.expires)}</div><div class="muted small" style="margin-top:8px">Sisa waktu</div><div class="countdown" id="cd" aria-live="off">--:--:--</div>` : ''}
+          <hr><a class="btn btn--ghost btn--block" href="invoice.html?inv=${encodeURIComponent(inv.id)}" target="_blank">${icon('download', 'icon--16')}Lihat / Unduh Invoice</a></aside>`;
+      }
+
+      function statusBlock() {
+        const map = {
+          menunggu: ['waiting', 'clock', 'Menunggu Pembayaran', inv.method ? 'Selesaikan pembayaran dengan metode yang dipilih. Halaman ini otomatis berubah saat pembayaran diterima.' : 'Pilih metode pembayaran untuk membuat instruksi.'],
+          berhasil: ['ok', 'check-circle', 'Pembayaran Berhasil', 'Terima kasih! Pembayaran Anda sudah kami terima secara otomatis.'],
+          kedaluwarsa: ['exp', 'x-circle', 'Invoice Kedaluwarsa', 'Batas waktu pembayaran terlewati. Tidak ada tagihan yang terpotong.']
+        };
+        if (checking) return `<div class="pay-status pay-status--checking" role="status"><span class="pay-status__ic"><span class="spinner"></span></span><div><b>Memeriksa pembayaran…</b><span class="small">Menerima konfirmasi dari payment gateway.</span></div></div>`;
+        const [c, ic, t, d] = map[inv.status] || map.menunggu;
+        return `<div class="pay-status pay-status--${c}" role="status"><span class="pay-status__ic ${c === 'ok' ? 'pay-ok-anim' : ''}">${icon(ic, 'icon--32')}</span><div><b>${t}</b><span class="small">${d}</span></div></div>`;
+      }
+
+      function methodsView() {
+        return `<form id="mform" class="card"><h2 style="font-size:18px">Pilih Metode Pembayaran</h2>
+          ${METHODS.map(g => `<div class="method-group" role="radiogroup" aria-label="${g.g}"><h3>${g.g}</h3>${g.items.map(m => `
+            <label class="option-card"><input type="radio" name="method" value="${m[0]}" ${selected === m[0] ? 'checked' : ''}><span class="bank-badge">${m[2]}</span><span><span class="opt-title">${m[1]}</span><br><span class="opt-sub">Biaya layanan ${fmt.rpRaw(feeOf(m[3], inv.amount))}</span></span><span class="opt-mark"></span></label>`).join('')}</div>`).join('')}
+          <div class="pay-sticky"><button class="btn btn--block btn--lg" type="submit">Buat Instruksi Pembayaran</button></div></form>`;
+      }
+
+      function instructionView() {
+        const m = mById(inv.method); const kind = m[3]; const total = inv.amount + inv.fee;
+        let body = '';
+        if (kind === 'va') body = `<div class="va-box"><div class="muted small">Nomor ${esc(m[1])}</div><div class="va-number" id="va">${inv.va}</div><button class="btn btn--sm btn--secondary" style="margin-top:12px" data-copy="${inv.va}">${icon('copy', 'icon--16')}Salin Nomor</button></div>
+          <ol style="margin:16px 0 0 18px;display:grid;gap:6px" class="small"><li>Buka aplikasi m-banking / ATM ${esc(m[2])}.</li><li>Pilih menu <b>Transfer → Virtual Account</b>.</li><li>Masukkan nomor di atas dan pastikan nominal <b class="num">${fmt.rpRaw(total)}</b>.</li><li>Konfirmasi. Status di halaman ini berubah otomatis — <b>tidak perlu kirim bukti transfer</b>.</li></ol>`;
+        else if (kind === 'qris') body = `<div class="va-box"><div style="display:inline-block;background:#fff;padding:10px;border-radius:12px;border:1px solid var(--color-border)">${qrSvg(inv.id + total, 200)}</div><div class="small muted" style="margin-top:8px">Pindai dengan aplikasi e-wallet / m-banking apa pun yang mendukung QRIS.</div></div>`;
+        else if (kind === 'ew') body = `<div class="va-box"><div class="bank-badge" style="margin:0 auto 8px;width:56px;height:36px">${m[2]}</div><div>Tautan pembayaran ${esc(m[1])} terkirim ke aplikasi Anda.</div><a class="btn" style="margin-top:12px" href="#" onclick="return false">Buka Aplikasi ${esc(m[1])}</a></div>`;
+        else body = `<div class="va-box"><div>Anda akan diarahkan ke halaman aman <b>3D Secure</b> milik penyedia gateway.</div><a class="btn" style="margin-top:12px" href="#" onclick="return false">Lanjut ke Halaman Kartu</a><div class="small muted" style="margin-top:8px">DOCI tidak pernah menyimpan data kartu, PIN, atau OTP bank Anda.</div></div>`;
+        return `<div class="card"><div class="row row--between"><h2 style="font-size:18px;margin:0">Instruksi — ${esc(m[1])}</h2><button class="btn btn--ghost btn--sm" id="chgm">Ganti metode</button></div><div style="margin-top:16px">${body}</div></div>
+          <div class="banner banner--demo small" id="demo">${icon('flash')}<div style="flex:1"><b>Mode demo — simulasi payment gateway</b>Pada sistem nyata, status berubah otomatis lewat webhook gateway. Gunakan tombol berikut untuk mencoba alurnya.
+          <div class="btn-group" style="margin-top:10px"><button class="btn btn--sm btn--success" id="sim-ok">Simulasikan pembayaran berhasil</button><button class="btn btn--sm btn--secondary" id="sim-exp">Simulasikan kedaluwarsa</button></div></div></div>`;
+      }
+
+      function successView() {
+        const u = Auth.current();
+        if (inv.type === 'membership') {
+          const p = inv.profile || {}; const until = new Date(inv.activeUntil);
+          return `<div class="banner banner--success"><span>${icon('check-circle', 'icon--24')}</span><div><b>Pembayaran berhasil! Membership Anda aktif sampai ${fmt.dateShort(until)}.</b>Member ID <span class="mono">${inv.memberId}</span> sudah terbit. Konfirmasi dikirim via WhatsApp & email.</div></div>
+          <div class="card"><h2 style="font-size:18px">Kartu Member Digital</h2><div style="display:flex;justify-content:center;padding:8px 0">${cardHTML({ name: p.fullName || 'Member DOCI', id: inv.memberId, chapter: (D.CHAPTERS.find(c => c.id === p.chapter) || {}).name || 'DOCI', until })}</div>
+          <div class="btn-group" style="margin-top:16px"><a class="btn btn--lg" href="akun.html">Masuk ke Area Member</a><a class="btn btn--secondary" href="invoice.html?inv=${encodeURIComponent(inv.id)}" target="_blank">Unduh Invoice</a></div></div>`;
+        }
+        return `<div class="banner banner--success"><span>${icon('check-circle', 'icon--24')}</span><div><b>Terdaftar & lunas!</b>Pendaftaran Anda untuk <b>${esc(inv.title)}</b> sudah terkonfirmasi. QR check-in terbit di bawah.</div></div>
+          <div class="card text-center"><h2 style="font-size:18px">QR Check-in</h2><div style="display:inline-block;background:#fff;padding:12px;border-radius:12px;border:1px solid var(--color-border)">${qrSvg(inv.id + 'checkin', 180)}</div><p class="muted small" style="margin:8px 0 16px">Tunjukkan ke admin di meeting point.</p><div class="btn-group" style="justify-content:center"><a class="btn" href="akun.html#kegiatan">Lihat Kegiatan Saya</a><a class="btn btn--secondary" href="kegiatan-detail.html?id=${evt ? evt.id : ''}">Detail Kegiatan</a></div></div>`;
+      }
+
+      const cardHTML = DOCI.cardHTML;
+
+      function render() {
+        checkExpiry();
+        let main = statusBlock();
+        if (inv.status === 'berhasil') main += successView();
+        else if (inv.status === 'kedaluwarsa') main += `<div class="card"><p>Tenang, Anda tidak perlu mengisi ulang data. Buat pembayaran baru untuk invoice yang sama.</p><button class="btn btn--lg" id="repay">Bayar Ulang</button></div>`;
+        else main += inv.method ? instructionView() : methodsView();
+        root.innerHTML = `<div class="pay-grid"><div class="stack">${main}</div>${summary()}</div><div class="sr-only" aria-live="polite" id="live"></div>`;
+        bind(); tick();
+      }
+
+      function bind() {
+        const mf = document.getElementById('mform');
+        if (mf) {
+          mf.addEventListener('change', (e) => { if (e.target.name === 'method') selected = e.target.value; });
+          mf.addEventListener('submit', (e) => {
+            e.preventDefault(); const m = mById(selected); const b = mf.querySelector('[type=submit]'); b.setAttribute('aria-busy', 'true'); b.textContent = 'Membuat instruksi…';
+            setTimeout(() => { inv.method = selected; inv.fee = feeOf(m[3], inv.amount); inv.va = ({ bca: '39358', bni: '8808', bri: '26215', mandiri: '70012' }[selected] || '') + String(Math.floor(1e9 + Math.random() * 8e9)).slice(0, 11); inv.expires = new Date(Date.now() + 24 * 3600e3).toISOString(); persist(); Audit.log('pilih metode bayar', inv.id, null, m[1]); render(); startPolling(); }, 600);
+          });
+        }
+        document.getElementById('chgm')?.addEventListener('click', () => { inv.method = null; inv.fee = 0; persist(); stopPolling(); render(); });
+        document.getElementById('repay')?.addEventListener('click', () => { inv.status = 'menunggu'; inv.method = null; inv.fee = 0; inv.expires = new Date(Date.now() + 24 * 3600e3).toISOString(); persist(); Audit.log('bayar ulang', inv.id); render(); });
+        document.getElementById('sim-ok')?.addEventListener('click', webhookSuccess);
+        document.getElementById('sim-exp')?.addEventListener('click', () => { inv.expires = new Date(Date.now() - 1000).toISOString(); persist(); stopPolling(); render(); });
+        document.querySelector('[data-copy]')?.addEventListener('click', (e) => { navigator.clipboard?.writeText(e.currentTarget.dataset.copy); toast({ type: 'success', msg: 'Nomor virtual account disalin.' }); });
+      }
+
+      let dupCount = 0;
+      function webhookSuccess() {
+        if (inv.status === 'berhasil') { dupCount++; toast({ type: 'info', title: 'Webhook duplikat diabaikan', msg: 'Idempoten: tidak ada aktivasi/transaksi ganda.' }); return; }
+        stopPolling(); checking = true; render();
+        setTimeout(() => {
+          checking = false; inv.status = 'berhasil'; inv.paidAt = new Date().toISOString(); activate(); persist();
+          Audit.log('webhook: pembayaran berhasil', inv.id, 'menunggu', 'berhasil'); render();
+          document.getElementById('live').textContent = 'Pembayaran berhasil.';
+          toast({ type: 'success', title: 'Pembayaran berhasil!', msg: inv.type === 'membership' ? 'Membership Anda aktif.' : 'Pendaftaran kegiatan terkonfirmasi.' });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 1500);
+      }
+
+      function activate() {
+        if (inv.type === 'membership') {
+          const now = new Date(), until = new Date(now); until.setFullYear(until.getFullYear() + 1);
+          inv.memberId = 'DOCI-' + String(now.getFullYear()).slice(2) + '-' + String(Math.floor(10000 + Math.random() * 89999));
+          inv.activeUntil = until.toISOString();
+          const p = inv.profile || {};
+          const user = { name: p.fullName || 'Member Baru', role: 'member', memberId: inv.memberId, chapter: p.chapter || 'jakarta', bike: 'Ducati ' + (p.model || '') + (p.year ? ` (${p.year}${p.color ? ', ' + p.color : ''})` : ''), email: p.email || '', city: p.city || '', activeUntil: inv.activeUntil, status: 'aktif' };
+          Auth.registerUser(inv.phone, user); Store.set('session', Object.assign({ phone: inv.phone }, user)); Store.del('draft');
+        } else if (inv.type === 'event') {
+          const regs = Store.get('regs', []); if (!regs.find(r => r.inv === inv.id)) regs.unshift({ inv: inv.id, eventId: inv.eventId, phone: inv.phone, at: new Date().toISOString() }); Store.set('regs', regs);
+          const t = Store.get('taken', {}); t[inv.eventId] = (t[inv.eventId] || 0) + 1; Store.set('taken', t);
+        }
+      }
+
+      function startPolling() { stopPolling(); poll = setInterval(() => { if (inv.status !== 'menunggu' || !inv.method || checking) return; const live = document.querySelector('.pay-status'); if (!live) return; live.className = 'pay-status pay-status--checking'; live.innerHTML = `<span class="pay-status__ic"><span class="spinner"></span></span><div><b>Memeriksa pembayaran…</b><span class="small">Menyinkronkan status dari gateway.</span></div>`; setTimeout(() => { if (inv.status === 'menunggu' && !checking) { const l = document.querySelector('.pay-status'); if (l) { l.className = 'pay-status pay-status--waiting'; l.innerHTML = `<span class="pay-status__ic">${icon('clock', 'icon--32')}</span><div><b>Menunggu Pembayaran</b><span class="small">Selesaikan pembayaran dengan metode yang dipilih. Halaman ini otomatis berubah saat pembayaran diterima.</span></div>`; } } }, 1200); }, 6000); }
+      function stopPolling() { clearInterval(poll); }
+
+      function tick() {
+        clearInterval(timer);
+        const el = document.getElementById('cd'); if (!el) return;
+        const upd = () => { const ms = new Date(inv.expires) - Date.now(); if (ms <= 0) { clearInterval(timer); render(); return; } const s = Math.floor(ms / 1000); el.textContent = [Math.floor(s / 3600), Math.floor(s % 3600 / 60), s % 60].map(n => String(n).padStart(2, '0')).join(':'); el.classList.toggle('is-urgent', s < 3600); };
+        upd(); timer = setInterval(upd, 1000);
+      }
+
+      render(); if (inv.status === 'menunggu' && inv.method) startPolling();
+    })();
+  </script>
+</body>
+</html>

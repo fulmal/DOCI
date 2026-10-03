@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Area Member — DOCI | Kegiatan, Dokumentasi &amp; Kartu Member</title>
+  <meta name="description" content="Kelola keanggotaan, kegiatan yang Anda ikuti, dokumentasi, dan kartu member digital DOCI di satu tempat.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+  <style>
+    @media print { body.print-card > *:not(main) { display: none !important; } body.print-card main > *:not(#print-zone) { display: none !important; }
+      body.print-card #print-zone { display: flex !important; justify-content: center; padding-top: 30mm; } body.print-card .account-head, body.print-card .bottom-nav { display: none !important; } }
+    #print-zone { display: none; }
+    .view[hidden] { display: none; }
+    .reg-card { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--color-line); flex-wrap: wrap; }
+    .reg-card:last-child { border-bottom: 0; }
+    .reg-card .qr { background: #fff; border: 1px solid var(--color-border); border-radius: 10px; padding: 6px; }
+    .reg-card .qr svg { width: 84px; height: 84px; display: block; }
+    .media-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); } @media (min-width: 768px) { .media-grid { grid-template-columns: repeat(4, 1fr); } }
+    .media-tile { position: relative; border-radius: var(--radius-md); overflow: hidden; background: #fff; border: 1px solid var(--color-border); }
+    .media-tile img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+    .media-tile div { padding: 8px 10px; font-size: 12.5px; } .media-tile b { display: block; font-family: var(--font-display); font-size: 13px; line-height: 1.3; }
+  </style>
+</head>
+<body data-page="membership">
+  <div id="site-header"></div>
+  <main id="main" class="account-shell">
+    <header class="account-head"><div class="container">
+      <div class="account-hello" id="hello"></div>
+      <nav class="tabs tabs--desktop" id="tabs" aria-label="Navigasi area member"></nav>
+    </div></header>
+    <div class="container account-body">
+      <div id="v-beranda" class="view" hidden></div>
+      <div id="v-kegiatan" class="view" hidden></div>
+      <div id="v-dokumentasi" class="view" hidden></div>
+      <div id="v-kartu" class="view" hidden></div>
+    </div>
+    <div id="print-zone"></div>
+    <nav class="bottom-nav" id="bnav" aria-label="Navigasi area member"></nav>
+
+    <dialog class="modal" id="edit-dlg" aria-labelledby="edit-title">
+      <form method="dialog" id="edit-form" novalidate>
+        <div class="modal__head"><h2 id="edit-title">Ubah Profil</h2><button type="button" class="icon-btn" data-close aria-label="Tutup" id="edit-x"></button></div>
+        <div class="modal__body stack">
+          <div class="field"><label class="field-label" for="e-name">Nama lengkap</label><input class="input" id="e-name" required autocomplete="name"></div>
+          <div class="field"><label class="field-label" for="e-email">Email</label><input class="input" id="e-email" type="email" autocomplete="email"></div>
+          <div class="form-row form-row--2">
+            <div class="field"><label class="field-label" for="e-city">Kota</label><input class="input" id="e-city"></div>
+            <div class="field"><label class="field-label" for="e-chapter">Chapter</label><select class="select" id="e-chapter"></select></div>
+          </div>
+          <div class="field"><label class="field-label" for="e-bike">Motor</label><input class="input" id="e-bike"></div>
+          <p class="help" style="margin:0">Nomor telepon tidak bisa diubah di sini karena dipakai untuk login. Hubungi admin bila perlu mengganti.</p>
+        </div>
+        <div class="modal__foot"><button type="button" class="btn btn--ghost" data-close>Batal</button><button class="btn" type="submit">Simpan</button></div>
+      </form>
+    </dialog>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/upload.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, fmt, Store, Auth, Audit, toast, statusChip, eventCard, cardHTML, qrSvg, openDialog, closeDialog, Upload, $, $$ } = DOCI;
+      let u = Auth.require(); if (!u) return;
+      const VIEWS = [['beranda', 'Beranda', 'home'], ['kegiatan', 'Kegiatan', 'calendar'], ['dokumentasi', 'Dokumentasi', 'image'], ['tracking', 'Tracking', 'pin'], ['kartu', 'Kartu', 'card']];
+      const chapterName = (id) => (D.CHAPTERS.find(c => c.id === id) || {}).name || 'DOCI';
+      const memberActive = () => u.status === 'aktif' && new Date(u.activeUntil) > new Date();
+      const myInvoices = () => Store.get('invoices', []).filter(i => i.phone === u.phone);
+      const myRegs = () => Store.get('regs', []).filter(r => r.phone === u.phone).map(r => Object.assign({}, r, { ev: D.EVENTS.find(e => e.id === r.eventId) })).filter(r => r.ev);
+      const myMedia = () => Upload.media().filter(m => m.phone === u.phone);
+
+      /* ---------- header & nav ---------- */
+      function chrome() {
+        const act = memberActive();
+        $('#hello').innerHTML = `<span class="avatar avatar--64">${fmt.initials(u.name)}</span><div class="grow"><h1>Halo, ${esc(u.name.split(' ')[0])}!</h1>
+          <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px">${act ? statusChip('aktif') : statusChip('memberKedaluwarsa')}<span class="mono small muted">${esc(u.memberId || '—')}</span><span class="small muted">${esc(chapterName(u.chapter))}</span></div></div>
+          ${u.role !== 'member' ? `<a class="btn btn--secondary btn--sm" href="admin.html">${icon('dashboard', 'icon--16')}Admin Panel</a>` : ''}`;
+        const link = (v) => v[0] === 'tracking' ? 'tracking.html' : '#' + v[0];
+        $('#tabs').innerHTML = VIEWS.map(v => `<a class="tab" href="${link(v)}" data-v="${v[0]}">${v[1]}</a>`).join('');
+        $('#bnav').innerHTML = VIEWS.map(v => `<a href="${link(v)}" data-v="${v[0]}">${icon(v[2], 'icon--24')}${v[1]}</a>`).join('');
+      }
+
+      /* ---------- views ---------- */
+      function beranda() {
+        const act = memberActive(), left = Math.ceil((new Date(u.activeUntil) - Date.now()) / 86400000);
+        const regs = myRegs().filter(r => new Date(r.ev.end) >= new Date()).sort((a, b) => new Date(a.ev.start) - new Date(b.ev.start));
+        const next = regs[0] ? regs[0].ev : null;
+        const pending = myInvoices().filter(i => i.status === 'menunggu' && new Date(i.expires) > new Date());
+        const live = D.EVENTS.find(e => e.status === 'berlangsung' && e.tracking);
+        $('#v-beranda').innerHTML = `
+          ${!act ? `<div class="banner banner--danger" style="margin-bottom:var(--space-4)"><span>${icon('x-circle', 'icon--24')}</span><div><b>Membership Anda tidak aktif</b>Perpanjang untuk kembali bisa mendaftar kegiatan, mengunggah dokumentasi, dan memakai live tracking. <a href="daftar.html"><b>Perpanjang sekarang</b></a></div></div>`
+            : left <= 30 ? `<div class="banner banner--warning" style="margin-bottom:var(--space-4)"><span>${icon('clock', 'icon--24')}</span><div><b>Membership berakhir ${left} hari lagi</b>Perpanjang sebelum ${fmt.date(u.activeUntil)} agar akses Anda tidak terputus. <a href="daftar.html"><b>Perpanjang</b></a></div></div>` : ''}
+          ${live ? `<div class="banner banner--red" style="margin-bottom:var(--space-4)"><span>${icon('activity', 'icon--24')}</span><div class="grow"><b>${esc(live.title)} sedang berlangsung</b>Pantau rombongan dan bagikan lokasi Anda.</div><a class="btn btn--sm" href="tracking.html">Buka Live Tracking</a></div>` : ''}
+          <div class="dash-grid">
+            <section class="card span-5" aria-labelledby="h-ms"><h2 class="card-title" id="h-ms">Keanggotaan</h2>
+              <dl class="kv"><div><dt>Status</dt><dd>${act ? statusChip('aktif') : statusChip('memberKedaluwarsa')}</dd></div><div><dt>Member ID</dt><dd class="mono">${esc(u.memberId || '—')}</dd></div><div><dt>Berlaku s.d.</dt><dd>${fmt.date(u.activeUntil)}</dd></div><div><dt>Chapter</dt><dd>${esc(chapterName(u.chapter))}</dd></div></dl>
+              <a class="btn btn--secondary btn--block" href="#kartu" style="margin-top:var(--space-3)">${icon('card', 'icon--16')}Lihat Kartu Member</a></section>
+            <section class="card span-7" aria-labelledby="h-nx"><h2 class="card-title" id="h-nx">Kegiatan Berikutnya</h2>
+              ${next ? `<a class="list-item" href="kegiatan-detail.html?id=${next.id}" style="text-decoration:none;color:inherit"><img class="thumb" src="${next.img}" alt="" width="64" height="48"><div class="grow"><b>${esc(next.title)}</b><span class="sub">${fmt.dateTime(next.start)} · ${esc(next.loc.split(',')[0])}</span></div>${icon('chev-right', 'icon--16')}</a>
+                <a class="btn btn--ghost btn--sm" href="#kegiatan" style="margin-top:8px">Lihat tiket &amp; QR check-in</a>`
+              : `<div class="empty" style="padding:var(--space-4) 0">${icon('calendar')}<h3>Belum ada kegiatan terdaftar</h3><p>Pilih kegiatan dan daftar dalam hitungan menit.</p><a class="btn btn--secondary" href="kegiatan.html">Lihat Kalender</a></div>`}</section>
+            <section class="card span-6" aria-labelledby="h-tg"><h2 class="card-title" id="h-tg">Tagihan Aktif</h2>
+              ${pending.length ? pending.map(i => `<div class="list-item"><span class="feature__icon" style="width:44px;height:44px;border-radius:12px;flex:none">${icon('receipt', 'icon--24')}</span><div class="grow"><b>${esc(i.title)}</b><span class="sub">${fmt.rpRaw(i.amount)} · bayar sebelum ${fmt.dateTime(i.expires)}</span></div><a class="btn btn--sm" href="bayar.html?inv=${encodeURIComponent(i.id)}">Bayar</a></div>`).join('')
+              : `<div class="empty" style="padding:var(--space-4) 0">${icon('check-circle')}<h3>Tidak ada tagihan</h3><p>Semua pembayaran Anda sudah beres.</p></div>`}</section>
+            <section class="card span-6" aria-labelledby="h-dk"><h2 class="card-title" id="h-dk">Dokumen Terbaru</h2>
+              ${D.DOCS.slice(0, 3).map(d => `<div class="list-item"><span class="feature__icon" style="width:44px;height:44px;border-radius:12px;flex:none">${icon('file', 'icon--24')}</span><div class="grow"><b>${esc(d.title)}</b><span class="sub">${d.cat} · ${d.ver}</span></div></div>`).join('')}
+              <a class="link-arrow" href="dokumen.html" style="margin-top:8px;display:inline-flex">Semua dokumen ${icon('arrow', 'icon--16')}</a></section>
+          </div>`;
+      }
+
+      function kegiatan() {
+        const regs = myRegs().sort((a, b) => new Date(b.ev.start) - new Date(a.ev.start)), inv = myInvoices();
+        $('#v-kegiatan').innerHTML = `<div class="dash-grid">
+          <section class="card span-7" aria-labelledby="h-kg"><h2 class="card-title" id="h-kg">Kegiatan Saya</h2>
+            ${regs.length ? regs.map(r => { const past = new Date(r.ev.end) < new Date(); return `<div class="reg-card"><div class="qr" ${past ? 'style="opacity:.4"' : ''}>${qrSvg(r.inv, 84)}</div>
+              <div class="grow" style="min-width:200px"><a href="kegiatan-detail.html?id=${r.ev.id}"><b style="font-family:var(--font-display)">${esc(r.ev.title)}</b></a><div class="small muted">${fmt.dateTime(r.ev.start)}</div><div class="small muted">${esc(r.ev.loc)}</div>
+              <div style="margin-top:6px">${past ? statusChip('selesai') : statusChip('berhasil')}</div></div></div>`; }).join('')
+            : `<div class="empty">${icon('calendar')}<h3>Belum ada kegiatan terdaftar</h3><p>Daftar kegiatan pertama Anda — QR check-in akan muncul di sini.</p><a class="btn" href="kegiatan.html">Lihat Kalender Kegiatan</a></div>`}
+            <p class="small muted" style="margin:var(--space-3) 0 0">QR pada prototipe ini hanya ilustrasi dan belum bisa dipindai.</p></section>
+          <section class="card span-5" aria-labelledby="h-rw"><h2 class="card-title" id="h-rw">Riwayat Pembayaran</h2>
+            ${inv.length ? inv.sort((a, b) => new Date(b.created) - new Date(a.created)).map(i => `<div class="list-item"><div class="grow"><b>${esc(i.title)}</b><span class="sub">${fmt.rpRaw(i.amount)} · ${fmt.dateShort(i.created)}</span></div><div style="text-align:right">${statusChip(i.status)}<div style="margin-top:4px"><a class="small" href="${i.status === 'menunggu' ? 'bayar' : 'invoice'}.html?inv=${encodeURIComponent(i.id)}">${i.status === 'menunggu' ? 'Bayar' : 'Invoice'}</a></div></div></div>`).join('')
+            : `<div class="empty" style="padding:var(--space-4) 0">${icon('receipt')}<h3>Belum ada transaksi</h3><p>Pembayaran Anda akan tercatat otomatis di sini.</p></div>`}</section></div>`;
+      }
+
+      function dokumentasi() {
+        const m = myMedia();
+        $('#v-dokumentasi').innerHTML = `<section class="card"><div class="row row--between" style="flex-wrap:wrap;gap:12px"><h2 class="card-title" style="margin:0">Dokumentasi Saya</h2><button class="btn" id="up-btn">${icon('upload', 'icon--16')}Unggah Foto / Video</button></div>
+          <p class="small muted">Foto langsung tayang di galeri dengan kredit nama Anda. Video ditinjau admin terlebih dahulu.</p>
+          ${m.length ? `<div class="media-grid">${m.map(x => `<article class="media-tile"><img src="${x.img}" alt="${esc(x.title)}" loading="lazy"><div><b>${esc(x.title)}</b><span class="muted">${esc(x.album)}</span><div style="margin-top:6px">${statusChip(x.status === 'review' ? 'review' : 'disetujui')}</div></div></article>`).join('')}</div>`
+          : `<div class="empty">${icon('image')}<h3>Belum ada unggahan</h3><p>Bagikan momen terbaik dari kegiatan terakhir Anda.</p></div>`}
+          </section>`;
+        $('#up-btn').onclick = () => Upload.open(() => { dokumentasi(); });
+      }
+
+      function kartu() {
+        const prefs = Object.assign({ notif: true, loc: true, vis: false }, Store.get('prefs', {}));
+        const act = memberActive();
+        $('#v-kartu').innerHTML = `<div class="dash-grid">
+          <section class="card span-5"><h2 class="card-title">Kartu Member Digital</h2>
+            <div style="display:flex;justify-content:center;padding:8px 0 16px">${cardHTML({ name: u.name, id: u.memberId || 'DOCI-00-00000', chapter: chapterName(u.chapter), until: u.activeUntil })}</div>
+            ${act ? '' : `<div class="banner banner--danger small">${icon('x-circle')}<div>Kartu tidak berlaku karena membership kedaluwarsa.</div></div>`}
+            <div class="row" style="gap:8px;margin-top:var(--space-3);flex-wrap:wrap"><button class="btn btn--secondary btn--sm" id="print">${icon('download', 'icon--16')}Cetak / Simpan PDF</button></div></section>
+          <section class="card span-7"><div class="row row--between"><h2 class="card-title" style="margin:0">Profil</h2><button class="btn btn--ghost btn--sm" id="edit">${icon('pencil', 'icon--16')}Ubah</button></div>
+            <dl class="kv" style="margin-top:var(--space-3)"><div><dt>Nama</dt><dd>${esc(u.name)}</dd></div><div><dt>Telepon</dt><dd>${fmt.phone(u.phone)}</dd></div><div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Kota</dt><dd>${esc(u.city || '—')}</dd></div><div><dt>Motor</dt><dd>${esc(u.bike || '—')}</dd></div></dl>
+            <h3 style="font-size:16px;margin:var(--space-5) 0 0">Pengaturan</h3>
+            ${[['notif', 'Notifikasi kegiatan & pembayaran', 'Pengingat via WhatsApp dan email.'], ['loc', 'Izinkan berbagi lokasi saat touring', 'Hanya aktif saat Anda memulai live tracking.'], ['vis', 'Tampilkan profil di direktori member', 'Hanya nama, chapter, dan motor. Nomor telepon tidak pernah tampil.']].map(s => `<div class="setting-row"><div><b id="l-${s[0]}">${s[1]}</b><span class="sub">${s[2]}</span></div><label class="switch"><input type="checkbox" data-pref="${s[0]}" aria-labelledby="l-${s[0]}" ${prefs[s[0]] ? 'checked' : ''}><span></span></label></div>`).join('')}
+            <div style="margin-top:var(--space-4)"><button class="btn btn--ghost btn--sm" id="out" style="color:var(--color-danger)">${icon('logout', 'icon--16')}Keluar</button></div></section></div>`;
+        $('#print').onclick = () => { $('#print-zone').innerHTML = cardHTML({ name: u.name, id: u.memberId || '', chapter: chapterName(u.chapter), until: u.activeUntil }); document.body.classList.add('print-card'); window.print(); setTimeout(() => document.body.classList.remove('print-card'), 500); };
+        $('#out').onclick = Auth.logout;
+        $('#edit').onclick = () => {
+          $('#e-name').value = u.name; $('#e-email').value = u.email || ''; $('#e-city').value = u.city || ''; $('#e-bike').value = u.bike || '';
+          $('#e-chapter').innerHTML = D.CHAPTERS.map(c => `<option value="${c.id}" ${c.id === u.chapter ? 'selected' : ''}>${c.name}</option>`).join('');
+          openDialog('#edit-dlg');
+        };
+        $$('[data-pref]').forEach(i => i.onchange = () => { const p = Object.assign({ notif: true, loc: true, vis: false }, Store.get('prefs', {})); p[i.dataset.pref] = i.checked; Store.set('prefs', p); Audit.log('ubah pengaturan', i.dataset.pref, null, i.checked); toast({ type: 'success', msg: 'Pengaturan disimpan.' }); });
+      }
+
+      $('#edit-x').innerHTML = icon('x', 'icon--24');
+      $('#edit-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = $('#e-name').value.trim(); if (!name) { toast({ type: 'error', title: 'Nama wajib diisi', msg: 'Masukkan nama lengkap Anda.' }); return; }
+        const before = { name: u.name, chapter: u.chapter };
+        u = Object.assign({}, u, { name, email: $('#e-email').value.trim(), city: $('#e-city').value.trim(), bike: $('#e-bike').value.trim(), chapter: $('#e-chapter').value });
+        Store.set('session', u);
+        const users = Store.get('users', {}); if (users[u.phone]) { users[u.phone] = Object.assign({}, users[u.phone], { name: u.name, email: u.email, city: u.city, bike: u.bike, chapter: u.chapter }); Store.set('users', users); }
+        Audit.log('ubah profil', u.memberId || u.phone, before, { name: u.name, chapter: u.chapter });
+        closeDialog('#edit-dlg'); toast({ type: 'success', title: 'Profil diperbarui', msg: 'Perubahan Anda sudah tersimpan.' }); chrome(); route();
+      });
+
+      const RENDER = { beranda, kegiatan, dokumentasi, kartu };
+      function route() {
+        let v = (location.hash || '#beranda').slice(1); if (v === 'profil') v = 'kartu';
+        if (!RENDER[v]) v = 'beranda';
+        $$('.view').forEach(x => x.hidden = x.id !== 'v-' + v);
+        RENDER[v]();
+        $$('#tabs a, #bnav a').forEach(a => { if (a.dataset.v === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+        $$('#tabs a').forEach(a => a.classList.toggle('is-active', a.dataset.v === v));
+      }
+      chrome(); route(); window.addEventListener('hashchange', () => { route(); window.scrollTo({ top: 0 }); });
+    })();
+  </script>
+</body>
+</html>

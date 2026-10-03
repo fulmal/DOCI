@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tentang DOCI — Sejarah, Visi &amp; Misi, Struktur Organisasi</title>
+  <meta name="description" content="Kenali Komunitas Ducati Indonesia (DOCI): sejarah, visi dan misi, serta struktur organisasi pengurus pusat dan chapter.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="tentang">
+  <div id="site-header"></div>
+  <main id="main">
+    <div id="page-head"></div>
+
+    <section class="section" id="sejarah" style="scroll-margin-top:90px">
+      <div class="container grid grid-2" style="align-items:center">
+        <div class="reveal">
+          <span class="overline">Sejarah</span>
+          <h2>Dari Kopdar Kecil Menjadi Keluarga Nasional</h2>
+          <p class="lead">Komunitas Ducati Indonesia lahir dari kecintaan para pemilik Ducati pada jalan raya, persaudaraan, dan keselamatan berkendara.</p>
+          <div class="banner banner--warning small" style="margin-bottom:var(--space-4)"><span id="ic-w"></span><div><b>Konten contoh</b>Tahun dan peristiwa di bawah ini hanya ilustrasi. Pengurus perlu mengisi sejarah resmi DOCI.</div></div>
+          <ol class="timeline" aria-label="Linimasa sejarah DOCI">
+            <li><b>[Tahun menyusul]</b><strong>Awal berdiri</strong><div class="muted">Sekelompok pemilik Ducati di Jakarta berkumpul rutin untuk ride bersama.</div></li>
+            <li><b>[Tahun menyusul]</b><strong>Chapter pertama</strong><div class="muted">Komunitas meluas ke kota-kota besar dan membentuk chapter daerah.</div></li>
+            <li><b>[Tahun menyusul]</b><strong>Kegiatan nasional</strong><div class="muted">Touring nasional, track day, dan bakti sosial menjadi agenda tahunan.</div></li>
+            <li><b>2026</b><strong>Platform digital</strong><div class="muted">Pendaftaran, pembayaran otomatis, dokumentasi, dan live tracking dalam satu platform.</div></li>
+          </ol>
+        </div>
+        <div class="reveal"><img src="assets/img/group.jpg" alt="Anggota DOCI berkumpul setelah riding bersama" width="640" height="480" loading="lazy" style="border-radius:var(--radius-xl);width:100%;aspect-ratio:4/3;object-fit:cover;box-shadow:var(--shadow-lg)"></div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="profil" style="scroll-margin-top:90px">
+      <div class="container">
+        <div class="section-head"><span class="overline">Profil</span><h2>Visi, Misi &amp; Nilai</h2><p>Tegas di jalan, akrab di luar jalan, dan saling menjaga.</p></div>
+        <div class="grid grid-3">
+          <article class="card reveal"><h3 class="card-title">Visi</h3><p class="muted" style="margin:0">Menjadi komunitas pemilik Ducati yang solid, aman, dan bermanfaat bagi sesama rider serta masyarakat.</p></article>
+          <article class="card reveal"><h3 class="card-title">Misi</h3>
+            <ul class="check-list" id="misi"></ul></article>
+          <article class="card reveal"><h3 class="card-title">Nilai</h3>
+            <ul class="check-list" id="nilai"></ul></article>
+        </div>
+        <p class="small muted" style="margin-top:var(--space-4)">Rumusan visi, misi, dan nilai di atas adalah draf contoh dan mengikuti AD/ART resmi saat dipublikasikan.</p>
+      </div>
+    </section>
+
+    <section class="section" id="struktur" style="scroll-margin-top:90px">
+      <div class="container">
+        <div class="section-head"><span class="overline">Struktur Organisasi</span><h2>Pengurus Pusat</h2><p>Nama pengurus akan diperbarui setelah data resmi tersedia.</p></div>
+        <div class="org-grid" id="org"></div>
+        <div class="text-center" style="margin-top:var(--space-6)"><a class="btn btn--secondary" href="dokumen.html">Baca AD/ART &amp; Dokumen</a></div>
+      </div>
+    </section>
+    <div id="join"></div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { icon, pageHead, joinCta, $ } = DOCI;
+      $('#page-head').innerHTML = pageHead('Tentang DOCI', 'Komunitas Ducati Indonesia — satu keluarga di atas roda dua.', []);
+      $('#ic-w').innerHTML = icon('alert');
+      $('#misi').innerHTML = ['Menyelenggarakan kegiatan riding, touring, dan track day yang aman.', 'Memperkuat persaudaraan antar chapter di seluruh Indonesia.', 'Mendorong budaya keselamatan berkendara dan etika di jalan.', 'Menjalankan kegiatan sosial yang berdampak.'].map(t => `<li>${icon('check')}<span>${t}</span></li>`).join('');
+      $('#nilai').innerHTML = [['Keselamatan', 'shield'], ['Persaudaraan', 'users'], ['Integritas', 'star'], ['Kepedulian', 'heart']].map(v => `<li>${icon(v[1])}<span>${v[0]}</span></li>`).join('');
+      const roles = ['Ketua Umum', 'Wakil Ketua', 'Sekretaris Jenderal', 'Bendahara', 'Koordinator Kegiatan', 'Koordinator Keselamatan', 'Koordinator Humas & Media', 'Koordinator Chapter'];
+      $('#org').innerHTML = roles.map((r, i) => `<article class="card org-card reveal"><span class="avatar avatar--64" aria-hidden="true">${icon('user', 'icon--24')}</span><h3 style="font-size:16px;margin:0 0 4px">${r}</h3><span class="muted small">Nama menyusul</span></article>`).join('');
+      $('#join').innerHTML = joinCta();
+      if (location.hash) setTimeout(() => document.querySelector(location.hash)?.scrollIntoView(), 50);
+    })();
+  </script>
+</body>
+</html>

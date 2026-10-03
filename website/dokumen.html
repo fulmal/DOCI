@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AD/ART &amp; Dokumen — DOCI</title>
+  <meta name="description" content="Unduh AD/ART, kode etik, aturan keselamatan, kebijakan privasi, dan formulir resmi Komunitas Ducati Indonesia.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="tentang">
+  <div id="site-header"></div>
+  <main id="main">
+    <div id="page-head"></div>
+    <section class="section" style="padding-top:var(--space-5)">
+      <div class="container" style="max-width:860px">
+        <div class="banner banner--warning" style="margin-bottom:var(--space-5)"><span id="ic-w"></span><div><b>Berkas contoh</b>Tombol unduh pada prototipe ini belum menautkan ke berkas asli. Pengurus akan mengunggah dokumen resmi melalui panel admin.</div></div>
+        <div class="field" style="margin-bottom:var(--space-4)"><label class="field-label" for="q">Cari dokumen</label><input class="input" id="q" type="search" placeholder="Contoh: kode etik"></div>
+        <div class="tabs" id="tabs" role="tablist" aria-label="Kategori dokumen"></div>
+        <div class="card" style="margin-top:var(--space-4);padding-top:0;padding-bottom:0" id="list"></div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, pageHead, toast, $, $$ } = DOCI;
+      $('#page-head').innerHTML = pageHead('AD/ART & Dokumen', 'Dokumen resmi, regulasi, dan formulir yang bisa diunduh siapa saja.', [['Tentang', 'tentang.html']]);
+      $('#ic-w').innerHTML = icon('alert');
+      const cats = ['Semua', ...new Set(D.DOCS.map(d => d.cat))]; let cat = 'Semua';
+      $('#tabs').innerHTML = cats.map(c => `<button class="tab" role="tab" data-c="${c}">${c}</button>`).join('');
+      function render() {
+        const q = $('#q').value.trim().toLowerCase();
+        $$('#tabs .tab').forEach(t => t.setAttribute('aria-selected', t.dataset.c === cat));
+        const items = D.DOCS.filter(d => (cat === 'Semua' || d.cat === cat) && d.title.toLowerCase().includes(q));
+        $('#list').innerHTML = items.length ? items.map((d, i) => `<div class="doc-row"><span class="feature__icon">${icon('file', 'icon--24')}</span><div class="grow"><b>${esc(d.title)}</b><span class="small muted">${d.cat} · ${d.size} · ${d.ver}</span></div><button class="btn btn--secondary btn--sm" data-d="${esc(d.title)}">${icon('download', 'icon--16')}Unduh</button></div>`).join('')
+          : `<div class="empty">${icon('file')}<h3>Dokumen tidak ditemukan</h3><p>Coba kata kunci lain atau pilih kategori berbeda.</p></div>`;
+      }
+      $('#tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) { cat = b.dataset.c; render(); } });
+      $('#q').addEventListener('input', render);
+      $('#list').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) toast({ type: 'info', title: 'Berkas contoh', msg: `“${b.dataset.d}” akan tersedia setelah pengurus mengunggah dokumen resmi.` }); });
+      render();
+    })();
+  </script>
+</body>
+</html>

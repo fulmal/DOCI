@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masuk — DOCI | Login dengan Nomor Telepon & OTP</title>
+  <meta name="description" content="Masuk ke Area Member DOCI dengan nomor telepon dan kode OTP. Tanpa password.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="masuk">
+  <div id="site-header"></div>
+  <main id="main" class="auth-wrap">
+    <aside class="auth-side" aria-hidden="true">
+      <img src="assets/img/group.jpg" alt="">
+      <div class="auth-side__in"><span class="overline" style="color:#ff6b79">Selamat datang kembali</span><h2>Siap ride bareng lagi?</h2><p style="max-width:40ch;opacity:.9">Masuk untuk melihat kegiatan Anda, mengunggah dokumentasi, dan memantau touring.</p></div>
+    </aside>
+    <div class="auth-main"><div class="container auth-box">
+      <div class="card">
+        <h1 style="font-size:26px">Masuk ke DOCI</h1>
+        <p class="muted">Gunakan nomor telepon yang terdaftar. Kami kirim kode OTP — tanpa password.</p>
+        <div id="otp-root"></div>
+        <hr>
+        <p class="text-center small" style="margin:0">Belum jadi member? <a href="membership.html"><b>Daftar Menjadi Member</b></a></p>
+      </div>
+      <div class="banner banner--demo demo-hint small">
+        <span id="di"></span>
+        <div><b>Akun demo (kode OTP: <code>123456</code>)</b>
+          <code>0812-0000-0001</code> Member · <code>0812-0000-0002</code> Admin · <code>0812-0000-0003</code> Superadmin</div>
+      </div>
+    </div></div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/otp.js"></script>
+  <script>
+    (function () {
+      const { OtpFlow, Auth, toast, Store, icon } = DOCI;
+      document.getElementById('di').innerHTML = icon('shield');
+      if (Auth.current()) { location.replace('akun.html'); return; }
+      const next = new URLSearchParams(location.search).get('next') || 'akun.html';
+      OtpFlow({
+        root: document.getElementById('otp-root'), mode: 'login',
+        onVerified(phone) {
+          const s = Auth.login(phone);
+          if (!Store.get('device_' + phone)) { Store.set('device_' + phone, 1); toast({ type: 'info', title: 'Notifikasi keamanan', msg: 'Login dari perangkat baru. Pemberitahuan dikirim ke WhatsApp terdaftar.', timeout: 6000 }); }
+          setTimeout(() => { location.href = decodeURIComponent(next).replace(/^\/+/, ''); }, s ? 400 : 0);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

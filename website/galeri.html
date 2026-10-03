@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Galeri Foto &amp; Video — DOCI | Dokumentasi Kegiatan Komunitas</title>
+  <meta name="description" content="Jelajahi foto dan video dokumentasi kegiatan DOCI dari seluruh chapter. Member dapat mengunggah dokumentasi mereka sendiri.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="galeri">
+  <div id="site-header"></div>
+  <main id="main">
+    <div id="page-head"></div>
+    <section class="section" style="padding-top:var(--space-5)">
+      <div class="container">
+        <div class="row row--between" style="margin-bottom:var(--space-4);flex-wrap:wrap;gap:12px">
+          <div class="field" style="margin:0;flex:1;min-width:220px;max-width:420px"><label class="sr-only" for="q">Cari dokumentasi</label><input class="input" id="q" type="search" placeholder="Cari judul, album, atau nama pengunggah"></div>
+          <button class="btn" id="btn-upload"></button>
+        </div>
+        <div class="filter-bar" role="group" aria-label="Filter galeri" id="filters">
+          <button class="chip chip--filter" data-t="all">Semua</button>
+          <button class="chip chip--filter" data-t="photo" id="f-photo"></button>
+          <button class="chip chip--filter" data-t="video" id="f-video"></button>
+          <label class="sr-only" for="album">Filter album</label><select class="select" id="album"></select>
+          <label class="sr-only" for="chapter">Filter chapter</label><select class="select" id="chapter"></select>
+        </div>
+        <p class="small muted" id="count" aria-live="polite"></p>
+        <div class="gallery" id="grid"></div>
+        <div id="empty" hidden><div class="empty"><span id="ic-e"></span><h3>Tidak ada dokumentasi</h3><p>Coba ubah filter, atau jadi yang pertama mengunggah foto kegiatan ini.</p><button class="btn btn--secondary" id="reset">Reset Filter</button></div></div>
+        <div class="banner banner--info small" style="margin-top:var(--space-6)"><span id="ic-i"></span><div><b>Aturan unggah</b>Foto maks 20 MB, video maks 500 MB. Hormati privasi: jangan menampilkan wajah atau plat nomor orang lain tanpa izin. Konten yang melanggar dapat dilaporkan dan akan ditinjau admin.</div></div>
+      </div>
+    </section>
+    <dialog class="lightbox" id="lightbox" aria-label="Penampil foto"></dialog>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/gallery.js"></script><script src="assets/js/upload.js"></script>
+  <script>
+    (function () {
+      const { D, icon, pageHead, Upload, $, $$ } = DOCI;
+      $('#page-head').innerHTML = pageHead('Galeri Foto & Video', 'Momen terbaik dari jalan raya, track, dan kegiatan sosial — dari member, untuk member.', []);
+      $('#btn-upload').innerHTML = icon('upload', 'icon--16') + 'Unggah Dokumentasi';
+      $('#f-photo').innerHTML = icon('image', 'icon--14') + 'Foto'; $('#f-video').innerHTML = icon('video', 'icon--14') + 'Video';
+      $('#ic-e').innerHTML = icon('image'); $('#ic-i').innerHTML = icon('shield');
+      let type = 'all', album = 'all', chapter = 'all', q = '';
+      const G = initG();
+      function all() { return Upload.media().filter(m => m.status !== 'review').concat(D.GALLERY); }
+      function fill() {
+        const items = all();
+        $('#album').innerHTML = '<option value="all">Semua album</option>' + [...new Set(items.map(g => g.album))].map(a => `<option>${a}</option>`).join('');
+        $('#chapter').innerHTML = '<option value="all">Semua chapter</option>' + D.CHAPTERS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        $('#album').value = album; $('#chapter').value = chapter;
+      }
+      function initG() { return DOCI.initGallery('#grid', all(), '#lightbox'); }
+      function render() {
+        $$('#filters .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === type));
+        const l = all().filter(g => (type === 'all' || g.type === type) && (album === 'all' || g.album === album) && (chapter === 'all' || g.chapter === chapter) && (!q || (g.title + ' ' + g.album + ' ' + g.by).toLowerCase().includes(q)));
+        G.render(l); $('#count').textContent = `${l.length} dokumentasi ditampilkan`;
+        $('#empty').hidden = l.length > 0;
+      }
+      fill(); render();
+      $('#filters').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) { type = b.dataset.t; render(); } });
+      $('#album').onchange = e => { album = e.target.value; render(); }; $('#chapter').onchange = e => { chapter = e.target.value; render(); };
+      $('#q').oninput = e => { q = e.target.value.trim().toLowerCase(); render(); };
+      $('#reset').onclick = () => { type = album = chapter = 'all'; q = ''; $('#q').value = ''; fill(); render(); };
+      $('#btn-upload').onclick = () => Upload.open(() => { fill(); render(); });
+      if (location.hash === '#unggah') Upload.open(() => { fill(); render(); });
+    })();
+  </script>
+</body>
+</html>

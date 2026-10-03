@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detail Kegiatan — DOCI</title>
+  <meta name="description" content="Detail kegiatan Komunitas Ducati Indonesia: jadwal, rundown, meeting point, kuota, biaya, dan pendaftaran.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="kegiatan">
+  <div id="site-header"></div>
+  <main id="main"><div id="ev-root"></div></main>
+  <div id="site-footer"></div>
+  <dialog class="modal" id="reg-dlg" aria-labelledby="reg-title"></dialog>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, fmt, Store, Auth, toast, Audit, statusChip, openDialog, closeDialog, qrSvg } = DOCI;
+      const id = new URLSearchParams(location.search).get('id');
+      const e = D.EVENTS.find(x => x.id === id);
+      const root = document.getElementById('ev-root');
+      if (!e) { root.innerHTML = `<section class="section"><div class="container"><div class="card empty">${icon('calendar')}<h3>Kegiatan tidak ditemukan</h3><p>Kegiatan yang Anda cari mungkin sudah dihapus atau tautannya keliru.</p><a class="btn" href="kegiatan.html">Kembali ke Kalender</a></div></div></section>`; return; }
+      document.title = e.title + ' — Kegiatan DOCI';
+      const c = D.CATEGORIES[e.cat], left = e.quota - e.taken, pct = Math.round(e.taken / e.quota * 100);
+      const u = Auth.current();
+      const regs = Store.get('regs', []);
+      const mine = u && regs.find(r => r.eventId === e.id && r.phone === u.phone);
+      const chap = D.CHAPTERS.find(x => x.id === e.chapter);
+
+      function cta() {
+        if (e.status === 'selesai') return `<div class="banner banner--info">${icon('check')}<div><b>Kegiatan telah selesai</b>Lihat dokumentasi di <a href="galeri.html">galeri</a>.</div></div>`;
+        if (mine) return `<div class="banner banner--success">${icon('check-circle')}<div><b>Anda sudah terdaftar</b>QR check-in ada di <a href="akun.html#kegiatan">Kegiatan Saya</a>.</div></div>`;
+        if (e.status === 'berlangsung') return `<a class="btn btn--block btn--lg" href="tracking.html">${icon('navigation')}Mulai Tracking Touring</a><p class="small muted" style="margin:8px 0 0">Kegiatan sedang berlangsung. Pendaftar dapat berbagi lokasi.</p>`;
+        if (left <= 0) return `<button class="btn btn--block btn--lg" id="reg">Masuk Waiting List</button><p class="small muted" style="margin:8px 0 0">Kuota penuh. Anda otomatis dinotifikasi jika ada slot.</p>`;
+        return `<button class="btn btn--block btn--lg" id="reg">${e.price ? 'Daftar & Bayar ' + fmt.rpRaw(e.price) : 'Daftar Kegiatan (Gratis)'}</button>`;
+      }
+
+      root.innerHTML = `
+        <section class="event-hero"><img src="${e.img}" alt="" width="1400" height="768"><div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="index.html">Beranda</a></li><li><a href="kegiatan.html">Kegiatan</a></li><li><span aria-current="page">${esc(e.title)}</span></li></ol></nav>
+          <div class="row" style="margin-bottom:12px"><span class="chip" style="background:${c.color};color:#fff">${c.label}</span>${statusChip(e.status)}${e.tracking ? `<span class="chip chip--dark">${icon('navigation')}Live tracking</span>` : ''}</div>
+          <h1>${esc(e.title)}</h1>
+          <div class="media-card__meta" style="color:rgba(255,255,255,.9);font-size:14px"><span>${icon('calendar', 'icon--16')}${fmt.range(e.start, e.end)}</span><span>${icon('pin', 'icon--16')}${esc(e.loc)}</span></div></div></section>
+        <section class="section" style="padding-top:var(--space-6)"><div class="container event-layout">
+          <div class="stack-lg">
+            <div><h2>Tentang Kegiatan</h2><p class="lead">${esc(e.desc)}</p></div>
+            ${e.rundown.length ? `<div><h2>Rundown</h2><ol class="timeline">${e.rundown.map(r => `<li><b>${esc(r[0])}</b>${esc(r[1])}</li>`).join('')}</ol></div>` : ''}
+            ${e.syarat.length ? `<div><h2>Syarat Peserta</h2><ul class="check-list">${e.syarat.map(s => `<li>${icon('check')}<span>${esc(s)}</span></li>`).join('')}</ul></div>` : ''}
+            <div><h2>Meeting Point</h2><p class="muted">${esc(e.loc)}</p><div class="mini-map" id="mini-map" role="img" aria-label="Peta meeting point ${esc(e.loc)}"></div>
+              <a class="link-arrow" style="margin-top:12px" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}">Buka di Google Maps ${icon('external', 'icon--16')}</a></div>
+          </div>
+          <aside class="event-aside stack">
+            <div class="card">
+              <div class="price" style="font-size:32px;color:var(--color-carbon)">${fmt.rp(e.price)}</div>
+              <div class="quota" style="margin:12px 0 16px"><div class="row row--between"><span class="${left <= 5 && left > 0 ? '' : 'muted'}" ${left <= 5 && left > 0 ? 'style="font-weight:700;color:var(--color-warning-text)"' : ''}>${left <= 0 ? 'Kuota penuh' : left <= 5 ? icon('alert', 'icon--14') + ' Sisa ' + left + ' kuota' : e.taken + ' dari ' + e.quota + ' peserta'}</span><span class="muted small">${pct}%</span></div>
+                <div class="progress ${left <= 5 ? 'progress--warn' : ''}" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Kuota terisi"><span style="width:${pct}%"></span></div></div>
+              <div id="cta">${cta()}</div>
+              <dl class="kv" style="margin-top:16px"><div><dt>PIC</dt><dd>${esc(e.pic)}</dd></div><div><dt>Chapter</dt><dd>${chap ? chap.name : '-'}</dd></div></dl>
+            </div>
+            <div class="card"><h3 class="card-title">Tambah ke Kalender</h3><div class="btn-group"><a class="btn btn--secondary btn--sm" target="_blank" rel="noopener" href="${gcal()}">Google Calendar</a><button class="btn btn--secondary btn--sm" id="ics">${icon('download', 'icon--16')}Unduh .ics</button></div></div>
+            <div class="card"><h3 class="card-title">Bagikan</h3><button class="btn btn--ghost btn--sm" id="share">${icon('share', 'icon--16')}Salin tautan</button></div>
+          </aside>
+        </div></section>`;
+
+      function gcal() { const f = d => new Date(d).toISOString().replace(/[-:]|\.\d{3}/g, ''); return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}&dates=${f(e.start)}/${f(e.end)}&details=${encodeURIComponent(e.desc)}&location=${encodeURIComponent(e.loc)}`; }
+      document.getElementById('ics')?.addEventListener('click', () => {
+        const f = d => new Date(d).toISOString().replace(/[-:]|\.\d{3}/g, '');
+        const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//DOCI//Kegiatan//ID', 'BEGIN:VEVENT', 'UID:' + e.id + '@doci', 'DTSTAMP:' + f(new Date()), 'DTSTART:' + f(e.start), 'DTEND:' + f(e.end), 'SUMMARY:' + e.title, 'LOCATION:' + e.loc, 'DESCRIPTION:' + e.desc.replace(/\n/g, ' '), 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = e.id + '.ics'; a.click(); toast({ type: 'success', msg: 'File kalender (.ics) diunduh.' });
+      });
+      document.getElementById('share')?.addEventListener('click', () => { navigator.clipboard?.writeText(location.href); toast({ type: 'success', msg: 'Tautan kegiatan disalin.' }); });
+
+      // map
+      const mm = document.getElementById('mini-map');
+      if (window.L) {
+        const m = L.map(mm, { scrollWheelZoom: false }).setView([e.lat, e.lng], 14);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19 }).addTo(m);
+        L.marker([e.lat, e.lng], { icon: L.divIcon({ className: '', html: `<div class="flag-mk" style="background:var(--color-primary)">${icon('flag', 'icon--16')}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] }) }).addTo(m);
+      } else mm.innerHTML = `<div class="empty" style="padding:24px"><p style="margin:0">Peta gagal dimuat.<br><span class="mono small">${e.lat}, ${e.lng}</span></p><button class="btn btn--sm btn--secondary" onclick="location.reload()">Muat Ulang</button></div>`;
+
+      // registrasi
+      const dlg = document.getElementById('reg-dlg');
+      document.getElementById('reg')?.addEventListener('click', () => {
+        if (!u) { toast({ type: 'info', msg: 'Masuk dulu ya, supaya pendaftaran tercatat atas nama Anda.' }); return setTimeout(() => location.href = 'masuk.html?next=' + encodeURIComponent('kegiatan-detail.html?id=' + e.id), 700); }
+        if (u.status !== 'aktif') { return toast({ type: 'warning', title: 'Membership belum aktif', msg: 'Selesaikan pendaftaran member terlebih dulu.' }); }
+        dlg.innerHTML = `<form id="reg-form"><div class="modal__head"><h2 id="reg-title">Konfirmasi Pendaftaran</h2><button type="button" class="icon-btn" data-close aria-label="Tutup">${icon('x', 'icon--24')}</button></div>
+          <div class="modal__body"><p class="muted">${esc(e.title)} · ${fmt.date(e.start)}</p>
+          <div class="field"><label for="emg">Kontak darurat (nama & nomor)<span class="req" aria-hidden="true">*</span></label><input class="input" id="emg" required placeholder="Siti — 0812xxxxxxx" aria-describedby="emg-e"><span class="error-text" id="emg-e" role="alert">${icon('alert', 'icon--16')}<span>Kontak darurat wajib diisi untuk keselamatan Anda.</span></span></div>
+          ${e.cat === 'touring' || e.cat === 'riding' ? `<div class="field"><label for="size">Ukuran kaos</label><select class="select" id="size"><option>M</option><option>L</option><option>XL</option><option>S</option></select></div>` : ''}
+          <dl class="kv kv--total"><div><dt>Biaya kegiatan</dt><dd class="num">${fmt.rp(e.price)}</dd></div></dl></div>
+          <div class="modal__foot"><button type="button" class="btn btn--ghost" data-close>Batal</button><button class="btn" type="submit">${e.price ? 'Lanjut ke Pembayaran' : 'Konfirmasi Pendaftaran'}</button></div></form>`;
+        openDialog(dlg);
+        const f = dlg.querySelector('#reg-form');
+        f.addEventListener('submit', (ev) => {
+          ev.preventDefault(); const emg = f.querySelector('#emg'); if (!emg.value.trim()) { emg.closest('.field').classList.add('has-error'); emg.focus(); return; }
+          if (!e.price) { const r = Store.get('regs', []); r.unshift({ inv: 'FREE-' + Date.now(), eventId: e.id, phone: u.phone, at: new Date().toISOString() }); Store.set('regs', r); const t = Store.get('taken', {}); t[e.id] = (t[e.id] || 0) + 1; Store.set('taken', t); Audit.log('daftar kegiatan', e.title); closeDialog(dlg); toast({ type: 'success', title: 'Terdaftar!', msg: 'Pendaftaran Anda terkonfirmasi. QR check-in ada di Kegiatan Saya.' }); return setTimeout(() => location.reload(), 900); }
+          const now = new Date(), seq = String(Math.floor(10000 + Math.random() * 89999));
+          const inv = { id: 'INV/DOCI/' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '/' + seq, type: 'event', eventId: e.id, title: e.title, phone: u.phone, items: [{ label: 'Biaya kegiatan', amount: e.price }], amount: e.price, status: 'menunggu', created: now.toISOString(), expires: new Date(now.getTime() + 24 * 3600e3).toISOString(), profile: { fullName: u.name } };
+          const all = Store.get('invoices', []); all.unshift(inv); Store.set('invoices', all); Audit.log('buat invoice kegiatan', inv.id);
+          location.href = 'bayar.html?inv=' + encodeURIComponent(inv.id);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalender Kegiatan — Touring, Riding, Track Day & Sosial | DOCI</title>
+  <meta name="description" content="Kalender kegiatan Komunitas Ducati Indonesia: touring, riding, track day, bakti sosial, dan meeting. Filter berdasarkan kategori dan chapter.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="kegiatan">
+  <div id="site-header"></div>
+  <main id="main">
+    <div id="page-head"></div>
+    <section class="section" style="padding-top:var(--space-5)">
+      <div class="container">
+        <div class="cal-toolbar">
+          <div class="cal-nav">
+            <button class="icon-btn" id="prev" aria-label="Bulan sebelumnya"></button>
+            <h2 id="month-title" aria-live="polite"></h2>
+            <button class="icon-btn" id="next" aria-label="Bulan berikutnya"></button>
+            <button class="btn btn--secondary btn--sm" id="today" style="margin-left:8px">Hari Ini</button>
+          </div>
+          <div class="view-toggle" role="group" aria-label="Tampilan kalender">
+            <button id="v-month" aria-pressed="true"></button><button id="v-agenda" aria-pressed="false"></button>
+          </div>
+        </div>
+        <div class="filter-bar" id="cat-filters" role="group" aria-label="Filter kategori"></div>
+        <div class="filter-bar"><label for="chapter-filter" class="sr-only">Filter chapter</label><select class="select" id="chapter-filter"></select><button class="chip chip--filter" id="reset" hidden></button></div>
+
+        <div class="cal-layout">
+          <div>
+            <div class="cal" id="cal-month"><div class="cal__head" aria-hidden="true"></div><div class="cal__grid" role="grid" aria-labelledby="month-title"></div></div>
+            <div id="cal-agenda" class="agenda" hidden></div>
+          </div>
+          <aside class="stack" aria-label="Agenda & legenda">
+            <div class="card"><h3 class="card-title">Agenda Bulan Ini</h3><div id="side-agenda"></div></div>
+            <div class="card"><h3 class="card-title">Legenda</h3><div class="legend" id="legend"></div></div>
+            <div class="banner banner--red"><span id="ic-cal"></span><div><b>Punya ide kegiatan?</b>Usulkan ke admin chapter Anda. <a href="kontak.html">Hubungi admin</a>.</div></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <dialog class="modal" id="ev-dlg" aria-labelledby="ev-dlg-title"></dialog>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, fmt, pageHead, openDialog, statusChip } = DOCI;
+      document.getElementById('page-head').innerHTML = pageHead('Kalender Kegiatan', 'Touring, riding, track day, sosial, dan meeting — semua chapter dalam satu kalender.', [['Kegiatan', 'kegiatan.html']]);
+      document.getElementById('prev').innerHTML = icon('chev-left', 'icon--24'); document.getElementById('next').innerHTML = icon('chev-right', 'icon--24');
+      document.getElementById('v-month').innerHTML = icon('grid', 'icon--16') + 'Bulan'; document.getElementById('v-agenda').innerHTML = icon('list', 'icon--16') + 'Agenda';
+      document.getElementById('ic-cal').innerHTML = icon('calendar');
+      const qs = new URLSearchParams(location.search);
+      let cat = qs.get('cat') || 'all', chapter = qs.get('chapter') || 'all', view = matchMedia('(min-width:768px)').matches ? 'month' : 'agenda';
+      const now = new Date(); let cur = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const catEl = document.getElementById('cat-filters');
+      catEl.innerHTML = `<button class="chip chip--filter" data-c="all">Semua</button>` + Object.entries(D.CATEGORIES).map(([k, c]) => `<button class="chip chip--filter" data-c="${k}"><i style="width:10px;height:10px;border-radius:3px;background:${c.color};display:inline-block"></i>${c.label}</button>`).join('');
+      document.getElementById('chapter-filter').innerHTML = `<option value="all">Semua chapter</option>` + D.CHAPTERS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      if (!D.CHAPTERS.some(c => c.id === chapter)) chapter = 'all'; document.getElementById('chapter-filter').value = chapter;
+      document.getElementById('legend').innerHTML = Object.values(D.CATEGORIES).map(c => `<span><i style="background:${c.color}"></i>${c.label}</span>`).join('');
+      const rs = document.getElementById('reset'); rs.textContent = 'Reset filter';
+
+      const filtered = () => D.EVENTS.filter(e => (cat === 'all' || e.cat === cat || (cat === 'riding' && e.cat === 'trackday')) && (chapter === 'all' || e.chapter === chapter)).sort((a, b) => a.start - b.start);
+      const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      const eventsOn = (d, list) => list.filter(e => { const s = new Date(e.start); s.setHours(0, 0, 0, 0); const en = new Date(e.end); en.setHours(23, 59, 59, 999); return d >= s && d <= en; });
+
+      function render() {
+        document.getElementById('month-title').textContent = `${fmt.monthName(cur.getMonth())} ${cur.getFullYear()}`;
+        catEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === cat));
+        rs.hidden = cat === 'all' && chapter === 'all';
+        const list = filtered();
+        // month grid
+        const head = document.querySelector('.cal__head'); head.innerHTML = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(d => `<div>${d}</div>`).join('');
+        const first = new Date(cur), off = (first.getDay() + 6) % 7, start = new Date(first); start.setDate(1 - off);
+        const days = Math.ceil((off + new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate()) / 7) * 7;
+        let html = '';
+        for (let i = 0; i < days; i++) {
+          const d = new Date(start); d.setDate(start.getDate() + i);
+          const evs = eventsOn(d, list), out = d.getMonth() !== cur.getMonth();
+          html += `<div class="cal__cell ${out ? 'is-out' : ''} ${sameDay(d, now) ? 'is-today' : ''}" role="gridcell" aria-label="${fmt.date(d)}${evs.length ? ', ' + evs.length + ' kegiatan' : ''}"><span class="cal__day">${d.getDate()}</span>` +
+            evs.slice(0, 2).map(e => `<button class="cal__ev" style="background:${D.CATEGORIES[e.cat].color}" data-id="${e.id}" title="${esc(e.title)}">${esc(e.title)}</button>`).join('') +
+            (evs.length > 2 ? `<button class="cal__more" data-day="${d.toISOString()}">+${evs.length - 2} lainnya</button>` : '') + '</div>';
+        }
+        document.querySelector('.cal__grid').innerHTML = html;
+        // agenda
+        const inMonth = list.filter(e => { const s = new Date(e.start), en = new Date(e.end); const ms = new Date(cur), me = new Date(cur.getFullYear(), cur.getMonth() + 1, 0, 23, 59); return s <= me && en >= ms; });
+        const agendaHTML = (arr) => arr.length ? arr.map((e, i) => { const s = new Date(e.start), c = D.CATEGORIES[e.cat]; const prev = arr[i - 1]; const showDay = !prev || !sameDay(new Date(prev.start), s);
+          return (showDay ? `<h3 class="agenda__day">${fmt.dayName(s)}, ${fmt.date(s)}</h3>` : '') + `<a class="agenda__item" href="kegiatan-detail.html?id=${e.id}"><div class="agenda__date" style="background:${c.color}"><b>${s.getDate()}</b><span>${fmt.mon(s)}</span></div><div class="grow"><h3>${esc(e.title)}</h3><div class="media-card__meta"><span>${icon('clock', 'icon--16')}${fmt.time(s)}</span><span>${icon('pin', 'icon--16')}${esc(e.loc.split(',')[0])}</span></div><div class="row" style="margin-top:8px;gap:6px"><span class="chip" style="background:${c.color};color:#fff">${c.label}</span>${statusChip(e.status)}<span class="price small" style="margin-left:auto">${fmt.rp(e.price)}</span></div></div></a>`; }).join('')
+          : `<div class="empty">${icon('calendar')}<h3>Belum ada kegiatan terjadwal</h3><p>Belum ada kegiatan terjadwal. Cek lagi minggu depan atau usulkan kegiatan ke admin chapter.</p><button class="btn btn--secondary" id="empty-reset">Reset filter</button></div>`;
+        document.getElementById('cal-agenda').innerHTML = agendaHTML(inMonth);
+        document.getElementById('side-agenda').innerHTML = inMonth.length ? inMonth.slice(0, 6).map(e => `<a class="list-item" href="kegiatan-detail.html?id=${e.id}" style="text-decoration:none;color:inherit"><span class="chip" style="background:${D.CATEGORIES[e.cat].color};color:#fff;min-width:44px;justify-content:center">${new Date(e.start).getDate()}</span><div class="grow"><b>${esc(e.title)}</b><span class="sub">${fmt.time(e.start)} · ${esc(e.city)}</span></div></a>`).join('') : '<p class="muted small" style="margin:0">Tidak ada kegiatan bulan ini.</p>';
+        document.getElementById('cal-month').hidden = view !== 'month'; document.getElementById('cal-agenda').hidden = view !== 'agenda';
+        document.getElementById('v-month').setAttribute('aria-pressed', view === 'month'); document.getElementById('v-agenda').setAttribute('aria-pressed', view === 'agenda');
+        document.getElementById('empty-reset')?.addEventListener('click', reset);
+      }
+      const reset = () => { cat = 'all'; chapter = 'all'; document.getElementById('chapter-filter').value = 'all'; render(); };
+      catEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { cat = b.dataset.c; render(); } });
+      document.getElementById('chapter-filter').addEventListener('change', (e) => { chapter = e.target.value; render(); });
+      rs.addEventListener('click', reset);
+      document.getElementById('prev').onclick = () => { cur.setMonth(cur.getMonth() - 1); render(); };
+      document.getElementById('next').onclick = () => { cur.setMonth(cur.getMonth() + 1); render(); };
+      document.getElementById('today').onclick = () => { cur = new Date(now.getFullYear(), now.getMonth(), 1); render(); };
+      document.getElementById('v-month').onclick = () => { view = 'month'; render(); };
+      document.getElementById('v-agenda').onclick = () => { view = 'agenda'; render(); };
+
+      const dlg = document.getElementById('ev-dlg');
+      function showEvent(e) {
+        const c = D.CATEGORIES[e.cat], left = e.quota - e.taken;
+        dlg.innerHTML = `<div class="modal__head"><div><span class="chip" style="background:${c.color};color:#fff;margin-bottom:8px">${c.label}</span><h2 id="ev-dlg-title">${esc(e.title)}</h2></div><button class="icon-btn" data-close aria-label="Tutup">${icon('x', 'icon--24')}</button></div>
+          <div class="modal__body"><dl class="kv"><div><dt>Waktu</dt><dd>${fmt.range(e.start, e.end)}</dd></div><div><dt>Lokasi</dt><dd>${esc(e.loc)}</dd></div><div><dt>Biaya</dt><dd class="num">${fmt.rp(e.price)}</dd></div><div><dt>Kuota</dt><dd>${left <= 0 ? 'Penuh' : left <= 5 ? `<span style="color:var(--color-warning-text)">Sisa ${left} kuota</span>` : e.taken + '/' + e.quota}</dd></div><div><dt>Status</dt><dd>${statusChip(e.status)}</dd></div></dl></div>
+          <div class="modal__foot"><button class="btn btn--ghost" data-close>Tutup</button><a class="btn" href="kegiatan-detail.html?id=${e.id}">Lihat Detail</a></div>`;
+        openDialog(dlg);
+      }
+      document.getElementById('cal-month').addEventListener('click', (ev) => {
+        const b = ev.target.closest('.cal__ev'); if (b) return showEvent(D.EVENTS.find(x => x.id === b.dataset.id));
+        const m = ev.target.closest('.cal__more'); if (m) { view = 'agenda'; render(); document.getElementById('cal-agenda').scrollIntoView({ behavior: 'smooth' }); }
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

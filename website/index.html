@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOCI — Komunitas Ducati Indonesia | Daftar Member, Kegiatan & Live Tracking</title>
+  <meta name="description" content="Website resmi Komunitas Ducati Indonesia (DOCI). Daftar menjadi member, ikuti touring & track day, unggah dokumentasi, dan pantau rombongan lewat live tracking.">
+  <meta name="theme-color" content="#D5001C">
+  <meta property="og:title" content="DOCI — Komunitas Ducati Indonesia">
+  <meta property="og:description" content="Daftar member, bayar otomatis, ikuti touring & track day, dan pantau rombongan secara real-time.">
+  <meta property="og:image" content="assets/img/hero.jpg">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+  <link rel="preload" as="image" href="assets/img/hero.jpg" fetchpriority="high">
+</head>
+<body data-page="home">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero__img" src="assets/img/hero.jpg" alt="Rombongan rider Ducati berformasi di jalan pegunungan saat matahari terbenam" width="1400" height="768" fetchpriority="high">
+      <div class="container hero__inner">
+        <span class="hero__badge"><span class="dot dot--pulse" aria-hidden="true"></span>Live tracking aktif · Touring Jakarta–Bandung sedang berlangsung</span>
+        <h1 id="hero-title">Satu Keluarga di Atas <em>Roda Dua</em></h1>
+        <p>Komunitas Ducati Indonesia — daftar member dalam 15 menit, bayar otomatis, ikut touring & track day, dan saling menjaga lewat live tracking.</p>
+        <div class="btn-group">
+          <a class="btn btn--lg" href="membership.html">Daftar Menjadi Member</a>
+          <a class="btn btn--lg btn--outline-light" href="kegiatan.html">Lihat Kegiatan</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats" aria-label="Statistik komunitas">
+      <div class="container stats__grid">
+        <div class="stat"><b data-count="1250" data-suffix="+">1.250+</b><span>Member</span></div>
+        <div class="stat"><b data-count="8">8</b><span>Chapter</span></div>
+        <div class="stat"><b data-count="64" data-suffix="+">64+</b><span>Kegiatan / Tahun</span></div>
+        <div class="stat"><b data-count="480000" data-suffix="+">480.000+</b><span>Kilometer Touring</span></div>
+      </div>
+    </section>
+
+    <!-- KEGIATAN TERDEKAT -->
+    <section class="section" aria-labelledby="h-events">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><span class="overline">Kalender</span><h2 id="h-events">Kegiatan Terdekat</h2><p>Touring, riding, track day, dan bakti sosial. Pilih kegiatan, daftar, dan bayar langsung dari HP.</p></div>
+          <a class="btn btn--secondary" href="kegiatan.html">Semua Kegiatan</a>
+        </div>
+        <div class="grid grid-3" id="home-events"></div>
+      </div>
+    </section>
+
+    <!-- FITUR PLATFORM -->
+    <section class="section section--tint" aria-labelledby="h-features">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="overline">Platform Digital DOCI</span><h2 id="h-features">Semua Urusan Klub, Satu Tempat</h2><p>Dirancang mobile-first agar mudah dipakai saat di rumah maupun di jalan.</p></div></div>
+        <div class="grid grid-4" id="home-features"></div>
+      </div>
+    </section>
+
+    <!-- LIVE TRACKING TEASER -->
+    <section class="section section--dark" aria-labelledby="h-track">
+      <div class="container tracking-teaser">
+        <div class="reveal">
+          <span class="overline" style="color:#ff6b79">Live Tracking</span>
+          <h2 id="h-track" style="font-size:var(--text-display);font-weight:800;line-height:1.1">Ride Aman. Rombongan Terpantau.</h2>
+          <p class="lead" style="color:#c9ccd3">Saat touring berlangsung, posisi peserta tampil di peta secara real-time — hanya bagi yang memberi izin, hanya selama kegiatan berjalan.</p>
+          <ul class="teaser-list">
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Consent-first.</b> Berbagi lokasi harus Anda aktifkan, dan berhenti otomatis saat kegiatan selesai.</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Tombol SOS.</b> Lokasi + sinyal darurat terkirim ke admin dan kontak darurat dalam ≤10 detik.</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Tahan sinyal buruk.</b> Data lokasi diantrekan saat offline dan tersinkron otomatis.</span></li>
+          </ul>
+          <a class="btn btn--lg" href="tracking.html">Mulai Tracking Touring</a>
+        </div>
+        <div class="map-mock reveal" role="img" aria-label="Ilustrasi peta live tracking dengan rute merah dan marker peserta">
+          <svg class="bg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <rect width="400" height="300" fill="#e7eaee"/>
+            <path d="M0 220 C80 200 120 250 200 230 S340 180 400 200 V300 H0Z" fill="#d7dde4"/>
+            <path d="M-10 90 C60 70 110 130 180 110 S320 40 410 70" fill="none" stroke="#fff" stroke-width="14"/>
+            <path d="M60 -10 C80 60 40 130 90 190 S140 260 130 310" fill="none" stroke="#fff" stroke-width="9"/>
+            <path d="M250 -10 C240 50 300 90 280 160 S320 250 340 310" fill="none" stroke="#fff" stroke-width="9"/>
+            <path d="M30 250 C90 210 120 160 180 150 S270 130 320 70 S350 40 372 34" fill="none" stroke="#D5001C" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 0"/>
+            <circle cx="30" cy="250" r="7" fill="#141416"/><path d="M366 20v22" stroke="#141416" stroke-width="3"/><path d="M366 20h16l-4 6 4 6h-16z" fill="#141416"/>
+          </svg>
+          <span class="pin pin--ok" style="left:30%;top:68%">RP</span>
+          <span class="pin pin--ok" style="left:46%;top:52%">DL</span>
+          <span class="pin" style="left:62%;top:40%">BA</span>
+          <span class="pin pin--off" style="left:79%;top:26%">SW</span>
+          <div class="float"><span class="avatar" style="background:var(--color-success)" aria-hidden="true">●</span><div><b>12 peserta berbagi lokasi</b><span>9 online · 2 idle · 1 offline</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BERITA -->
+    <section class="section" aria-labelledby="h-news">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="overline">Kabar DOCI</span><h2 id="h-news">Berita Terbaru</h2></div><a class="btn btn--secondary" href="berita.html">Baca Semua</a></div>
+        <div class="grid grid-3" id="home-news"></div>
+      </div>
+    </section>
+
+    <!-- GALERI -->
+    <section class="section section--tint" aria-labelledby="h-gallery">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="overline">Dokumentasi</span><h2 id="h-gallery">Galeri Terbaru</h2><p>Momen dari jalan, sirkuit, dan kegiatan sosial — diunggah oleh member DOCI.</p></div><a class="btn btn--secondary" href="galeri.html">Lihat Galeri</a></div>
+        <div class="gallery" id="home-gallery"></div>
+      </div>
+    </section>
+
+    <div id="join-cta"></div>
+  </main>
+
+  <div id="site-footer"></div>
+  <dialog class="lightbox" id="lightbox" aria-label="Penampil foto"></dialog>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/gallery.js"></script>
+  <script>
+    (function () {
+      const { D, eventCard, newsCard, icon, joinCta } = DOCI;
+      const upcoming = D.EVENTS.filter(e => e.status === 'terbit' || e.status === 'berlangsung').sort((a, b) => a.start - b.start).slice(0, 3);
+      document.getElementById('home-events').innerHTML = upcoming.map(e => `<div class="reveal">${eventCard(e)}</div>`).join('');
+      document.getElementById('home-news').innerHTML = D.NEWS.slice(0, 3).map(n => `<div class="reveal">${newsCard(n)}</div>`).join('');
+      const feats = [['user', 'Daftar < 15 Menit', 'Verifikasi nomor via OTP, isi form bertahap, lalu bayar. Tanpa antre, tanpa berkas manual.'], ['card', 'Bayar Otomatis', 'Virtual Account, QRIS, e-wallet. Status berubah real-time — tanpa upload bukti transfer.'], ['calendar', 'Kalender Terpadu', 'Semua touring, riding, dan track day tiap chapter dalam satu kalender, lengkap dengan kuota real-time.'], ['image', 'Arsip Dokumentasi', 'Unggah foto & video kegiatan langsung dari HP. Tersimpan rapi dan mudah dicari kembali.']];
+      document.getElementById('home-features').innerHTML = feats.map(f => `<div class="card card--link feature reveal"><span class="feature__icon">${icon(f[0])}</span><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('');
+      document.getElementById('join-cta').innerHTML = joinCta();
+      DOCI.initGallery('#home-gallery', D.GALLERY.slice(0, 8), '#lightbox');
+    })();
+  </script>
+</body>
+</html>

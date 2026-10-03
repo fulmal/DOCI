@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Berita — DOCI</title>
+  <meta name="description" content="Baca berita dan artikel terbaru Komunitas Ducati Indonesia.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="berita">
+  <div id="site-header"></div>
+  <main id="main">
+    <section class="section" style="padding-top:var(--space-5)">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--space-4)" id="crumb"></nav>
+        <article class="article" id="article"></article>
+        <hr style="margin:var(--space-7) 0 var(--space-5)">
+        <div class="section-head"><h2>Baca Juga</h2></div>
+        <div class="grid grid-3" id="more"></div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { D, icon, esc, fmt, newsCard, toast, $ } = DOCI;
+      const id = new URLSearchParams(location.search).get('id');
+      const n = D.NEWS.find(x => x.id === id);
+      if (!n) {
+        document.title = 'Artikel tidak ditemukan — DOCI';
+        $('#article').innerHTML = `<div class="empty">${icon('newspaper')}<h1 style="font-size:24px">Artikel tidak ditemukan</h1><p>Tautan mungkin sudah berubah atau artikel dihapus.</p><a class="btn" href="berita.html">Lihat Semua Berita</a></div>`;
+        $('#more').innerHTML = D.NEWS.slice(0, 3).map(newsCard).join(''); return;
+      }
+      document.title = n.title + ' — DOCI';
+      document.querySelector('meta[name=description]').content = n.excerpt;
+      $('#crumb').innerHTML = `<ol><li><a href="index.html">Beranda</a></li><li><a href="berita.html">Berita</a></li><li><span aria-current="page">${esc(n.cat)}</span></li></ol>`;
+      $('#article').innerHTML = `<span class="chip chip--red">${n.cat}</span><h1>${esc(n.title)}</h1>
+        <div class="article__meta"><span>${icon('calendar', 'icon--16')}${fmt.date(n.date)}</span><span>${icon('user', 'icon--16')}${esc(n.author)}</span></div>
+        <img class="cover" src="${n.img}" alt="" width="1280" height="720">
+        ${n.body.map(p => `<p>${esc(p)}</p>`).join('')}
+        <div class="row" style="margin-top:var(--space-5)"><button class="btn btn--secondary btn--sm" id="share">${icon('share', 'icon--16')}Bagikan</button><a class="btn btn--ghost btn--sm" href="berita.html">${icon('chev-left', 'icon--16')}Semua Berita</a></div>`;
+      $('#share').onclick = async () => {
+        const data = { title: n.title, text: n.excerpt, url: location.href };
+        if (navigator.share) { try { await navigator.share(data); } catch { /* dibatalkan */ } }
+        else { try { await navigator.clipboard.writeText(location.href); toast({ type: 'success', msg: 'Tautan artikel disalin.' }); } catch { toast({ type: 'info', msg: 'Salin tautan dari bilah alamat browser.' }); } }
+      };
+      $('#more').innerHTML = D.NEWS.filter(x => x.id !== n.id).slice(0, 3).map(newsCard).join('');
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Berita &amp; Artikel — DOCI | Kabar Komunitas Ducati Indonesia</title>
+  <meta name="description" content="Berita klub, laporan kegiatan, dan artikel tips berkendara dari Komunitas Ducati Indonesia.">
+  <meta name="theme-color" content="#D5001C">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body data-page="berita">
+  <div id="site-header"></div>
+  <main id="main">
+    <div id="page-head"></div>
+    <section class="section" style="padding-top:var(--space-5)">
+      <div class="container">
+        <div class="filter-bar" id="filters" role="group" aria-label="Filter kategori berita"></div>
+        <div class="grid grid-3" id="grid" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const { D, icon, newsCard, pageHead, $, $$ } = DOCI;
+      $('#page-head').innerHTML = pageHead('Berita & Artikel', 'Kabar klub, laporan kegiatan, dan tips berkendara dari keluarga DOCI.', []);
+      const cats = ['Semua', ...new Set(D.NEWS.map(n => n.cat))]; let cat = new URLSearchParams(location.search).get('cat') || 'Semua';
+      $('#filters').innerHTML = cats.map(c => `<button class="chip chip--filter" data-c="${c}">${c}</button>`).join('');
+      function render() {
+        $$('#filters button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === cat));
+        const items = D.NEWS.filter(n => cat === 'Semua' || n.cat === cat).sort((a, b) => b.date - a.date);
+        $('#grid').innerHTML = items.length ? items.map(newsCard).join('') : `<div class="empty" style="grid-column:1/-1">${icon('newspaper')}<h3>Belum ada artikel</h3><p>Artikel pada kategori ini akan segera hadir.</p></div>`;
+      }
+      $('#filters').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { cat = b.dataset.c; render(); } });
+      render();
+    })();
+  </script>
+</body>
+</html>
