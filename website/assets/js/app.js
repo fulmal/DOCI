@@ -246,6 +246,9 @@
     return `<svg viewBox="-1 -1 ${n + 2} ${n + 2}" width="${size}" height="${size}" role="img" aria-label="Kode QR verifikasi"><rect x="-1" y="-1" width="${n + 2}" height="${n + 2}" fill="${bg}"/><path d="${cells}" fill="${fg}"/>${fnd(0, 0)}${fnd(n - 7, 0)}${fnd(0, n - 7)}</svg>`;
   }
 
+  /* ---------- Social (handle placeholder — ganti dengan akun resmi) ---------- */
+  const SOCIAL = { instagram: { handle: 'doci.indonesia', url: 'https://www.instagram.com/doci.indonesia/' } };
+
   /* ---------- Header ---------- */
   const NAV = [
     { label: 'Tentang', key: 'tentang', items: [['Sejarah', 'tentang.html#sejarah', 'history'], ['Profil, Visi & Misi', 'tentang.html#profil', 'flag'], ['Struktur Organisasi', 'tentang.html#struktur', 'users'], ['AD/ART & Dokumen', 'dokumen.html', 'file']] },
@@ -362,7 +365,7 @@
       <div class="footer-grid">
         <div class="footer-brand">${logo(true)}
           <p>Komunitas Ducati Indonesia — satu keluarga di atas roda dua. Tegas, akrab, dan saling menjaga.</p>
-          <div class="footer-social"><a href="#" aria-label="Instagram DOCI">${icon('instagram', 'icon--24')}</a><a href="#" aria-label="Facebook DOCI">${icon('facebook', 'icon--24')}</a><a href="#" aria-label="YouTube DOCI">${icon('youtube', 'icon--24')}</a></div>
+          <div class="footer-social"><a href="${SOCIAL.instagram.url}" target="_blank" rel="noopener noreferrer" aria-label="Instagram DOCI (@${SOCIAL.instagram.handle})">${icon('instagram', 'icon--24')}</a><a href="#" aria-label="Facebook DOCI">${icon('facebook', 'icon--24')}</a><a href="#" aria-label="YouTube DOCI">${icon('youtube', 'icon--24')}</a></div>
         </div>
         ${g('Kontak', `<ul class="footer-contact"><li>${icon('pin', 'icon--16')}<span>Sekretariat DOCI<br>Jakarta, Indonesia<br><span style="opacity:.7">(alamat final menyusul)</span></span></li><li>${icon('phone', 'icon--16')}<span>+62 812-0000-0000</span></li><li>${icon('mail', 'icon--16')}<a href="mailto:halo@doci.example">halo@doci.example</a></li></ul>`)}
         ${g('Menu', `<ul><li><a href="tentang.html">Tentang DOCI</a></li><li><a href="kegiatan.html">Kalender Kegiatan</a></li><li><a href="berita.html">Berita</a></li><li><a href="galeri.html">Galeri</a></li><li><a href="chapter.html">Chapter</a></li><li><a href="dokumen.html">AD/ART & Dokumen</a></li></ul>`)}
@@ -459,5 +462,5 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
-  window.DOCI = Object.assign(window.DOCI || {}, { D, icon, fmt, normPhone, esc, $, $$, Store, Audit, Auth, toast, openDialog, closeDialog, confirmDialog, logo, qrSvg, statusChip, eventCard, newsCard, pageHead, joinCta, EMBLEM, cardHTML });
+  window.DOCI = Object.assign(window.DOCI || {}, { D, icon, fmt, normPhone, esc, $, $$, Store, Audit, Auth, toast, openDialog, closeDialog, confirmDialog, logo, SOCIAL, qrSvg, statusChip, eventCard, newsCard, pageHead, joinCta, EMBLEM, cardHTML });
 })();

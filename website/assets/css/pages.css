@@ -36,6 +36,25 @@
 .feature h3 { margin: 0; font-size: 18px; }
 .feature p { margin: 0; color: var(--color-ink-700); font-size: 14.5px; }
 
+/* ---------- Instagram ---------- */
+.ig__inner { display: grid; gap: var(--space-6); align-items: center; }
+.ig__intro { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.ig__intro h2 { margin: 0; } .ig__intro p { margin: 0; max-width: 46ch; }
+.ig__handle { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: #fff; text-decoration: none; }
+.ig__handle:hover { color: #ff6b79; }
+.ig__handle .icon { width: 24px; height: 24px; }
+.ig__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ig__tile { position: relative; display: block; aspect-ratio: 1 / 1; border-radius: var(--radius-md); overflow: hidden; background: #2a2a2e; }
+.ig__tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--ease-out); }
+.ig__tile::after { content: ""; position: absolute; inset: 0; background: rgba(20, 20, 22, .55); opacity: 0; transition: opacity var(--duration-base) ease-out; }
+.ig__badge { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; color: #fff; opacity: 0; transform: scale(.85); transition: opacity var(--duration-base) ease-out, transform var(--duration-base) var(--ease-out); }
+.ig__badge .icon { width: 32px; height: 32px; }
+.ig__tile:hover img, .ig__tile:focus-visible img { transform: scale(1.06); }
+.ig__tile:hover::after, .ig__tile:focus-visible::after { opacity: 1; }
+.ig__tile:hover .ig__badge, .ig__tile:focus-visible .ig__badge { opacity: 1; transform: none; }
+@media (min-width: 992px) { .ig__inner { grid-template-columns: 5fr 7fr; gap: var(--space-10, 64px); } .ig__grid { gap: 12px; } }
+@media (prefers-reduced-motion: reduce) { .ig__tile img, .ig__badge { transition: none; } }
+
 /* ---------- Gallery ---------- */
 .gallery { display: grid; gap: 8px; grid-template-columns: repeat(2, 1fr); }
 @media (min-width: 768px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: 10px; } }
