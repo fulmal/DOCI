@@ -357,9 +357,37 @@ dialog.lightbox[open] { animation: fade-in var(--duration-base) ease-out; displa
 .contact-item b { display: block; font-family: var(--font-display); }
 .org-grid { display: grid; gap: var(--space-4); } @media (min-width: 768px) { .org-grid { grid-template-columns: repeat(2, 1fr); } } @media (min-width: 992px) { .org-grid { grid-template-columns: repeat(4, 1fr); } }
 .org-card { text-align: center; } .org-card .avatar { margin: 0 auto 12px; background: var(--color-cloud-100); color: var(--color-slate-500); border: 2px dashed var(--color-slate-300); }
-.doc-row { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--color-line); }
+.doc-row {
+  display: flex; gap: var(--space-4); align-items: center;
+  padding: 14px 16px; margin: 0 -16px;
+  border-bottom: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) ease-out, border-color var(--duration-fast) ease-out;
+}
 .doc-row:last-child { border-bottom: 0; }
-.doc-row .feature__icon { width: 44px; height: 44px; border-radius: 12px; flex: none; } .doc-row b { font-family: var(--font-display); display: block; line-height: 1.3; }
+.doc-row:hover {
+  background: var(--color-red-50);
+  border-color: transparent;
+}
+.doc-row .feature__icon { width: 44px; height: 44px; border-radius: 12px; flex: none; }
+.doc-row b { font-family: var(--font-display); display: block; line-height: 1.3; }
+.doc-row .btn--secondary {
+  --btn-bg: #fff;
+  --btn-fg: var(--color-ink-700);
+  --btn-bd: var(--color-border);
+  transition: all var(--duration-fast) ease-out;
+}
+.doc-row:hover .btn--secondary {
+  --btn-bg: #fff;
+  --btn-fg: var(--color-primary);
+  --btn-bd: var(--color-primary);
+}
+.doc-row .btn--secondary:hover {
+  --btn-bg: var(--color-primary);
+  --btn-fg: #fff;
+  --btn-bd: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(213, 0, 28, .25);
+}
 .error-page { min-height: 70vh; display: grid; place-items: center; text-align: center; padding: var(--space-8) 0; }
 .error-page .code { font-family: var(--font-display); font-size: 120px; font-weight: 900; color: var(--color-primary); line-height: 1; }
 .error-page .code span { display: inline-block; color: var(--color-carbon); transform: skewX(-10deg); }
