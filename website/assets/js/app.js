@@ -112,7 +112,8 @@
     if (s.startsWith('+62')) s = s.slice(3);
     else if (s.startsWith('62')) s = s.slice(2);
     else if (s.startsWith('0')) s = s.slice(1);
-    return /^8\d{8,12}$/.test(s) ? '+62' + s : null;
+    if (s.startsWith('0')) s = s.slice(1); /* +62 0812… / 62 0812… */
+    return /^8\d{8,11}$/.test(s) ? '+62' + s : null;
   }
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const $ = (s, r = document) => r.querySelector(s);

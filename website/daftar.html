@@ -281,15 +281,15 @@
         const c = D.CHAPTERS.find(x => x.id === d().chapter);
         form.innerHTML = `<dl class="kv"><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Kendaraan (${vehicles().length})</dt><dd>${vehicles().map(v => `<div class="sum-veh">${esc(bikeLabel(v))}<span class="small muted">${esc(v.plate)} · STNK ${v.stnk ? 'terunggah' : 'belum ada'}</span></div>`).join('')}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah · ${vehicles().filter(v => v.stnk).length} STNK menunggu verifikasi admin</dd></div></dl>
         <h3 style="margin:24px 0 8px;font-size:17px">Rincian Biaya</h3>
-        <dl class="kv kv--total"><div><dt>Biaya pendaftaran</dt><dd class="num">Rp 150.000</dd></div><div><dt>Iuran tahunan (12 bulan)</dt><dd class="num">Rp 100.000</dd></div><div><dt>Total</dt><dd class="num">Rp 250.000</dd></div></dl>
+        <dl class="kv kv--total"><div><dt>Biaya join (pendaftaran + iuran 12 bulan pertama)</dt><dd class="num">Rp 1.500.000</dd></div><div><dt>Total</dt><dd class="num">Rp 1.500.000</dd></div></dl>
         <p class="help" style="margin-top:8px">Biaya layanan metode pembayaran (jika ada) ditampilkan di langkah berikutnya. Pembayaran otomatis — tidak perlu unggah bukti transfer.</p>
-        <div class="form-actions form-actions--sticky"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button><button class="btn btn--lg" type="submit">Bayar Rp 250.000</button></div>`;
+        <div class="form-actions form-actions--sticky"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button><button class="btn btn--lg" type="submit">Bayar Rp 1.500.000</button></div>`;
         form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
         form.onsubmit = (e) => {
           e.preventDefault(); const b = form.querySelector('[type=submit]'); b.setAttribute('aria-busy', 'true'); b.textContent = 'Memproses…';
           const now = new Date(), seq = String(Math.floor(10000 + Math.random() * 89999));
           const inv = { id: 'INV/DOCI/' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '/' + seq, regNo: 'REG-' + String(now.getFullYear()).slice(2) + String(now.getMonth() + 1).padStart(2, '0') + '-' + seq, type: 'membership', title: 'Membership Baru DOCI', phone: draft.phone,
-            items: [{ label: 'Biaya pendaftaran', amount: 150000 }, { label: 'Iuran tahunan (12 bulan)', amount: 250000 - 150000 }], amount: 250000, status: 'menunggu', created: now.toISOString(), expires: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
+            items: [{ label: 'Biaya join (pendaftaran + iuran 12 bulan pertama)', amount: 1500000 }], amount: 1500000, status: 'menunggu', created: now.toISOString(), expires: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
             profile: Object.assign({}, draft.data, { phone: draft.phone }, { model: vehicles()[0].model, year: vehicles()[0].year, color: vehicles()[0].color, plate: vehicles()[0].plate, vehicles: vehicles().map(v => ({ id: v.id, model: v.model, year: v.year, color: v.color, plate: v.plate, stnk: v.stnk ? Object.assign({}, v.stnk, { status: 'menunggu' }) : null })) }) };
           const all = Store.get('invoices', []); all.unshift(inv); Store.set('invoices', all);
           Audit.log('buat invoice', inv.id, null, { status: 'menunggu' });

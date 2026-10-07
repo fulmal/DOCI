@@ -143,7 +143,7 @@
 
   const FAQ = [
     ['Apa saja syarat menjadi member DOCI?', 'Pemilik atau pengguna motor Ducati, berusia minimal 17 tahun, memiliki SIM C yang berlaku, dan menyetujui AD/ART serta kode etik klub.'],
-    ['Berapa biaya keanggotaan dan berapa lama masa berlakunya?', 'Biaya pendaftaran Rp 150.000 dan iuran tahunan Rp 100.000 (total Rp 250.000) dengan masa berlaku 12 bulan. Nominal final mengikuti ketetapan pengurus.'],
+    ['Berapa biaya keanggotaan dan berapa lama masa berlakunya?', 'Biaya join Rp 1.500.000, sudah termasuk pendaftaran dan iuran tahun pertama, dengan masa berlaku 12 bulan. Nominal final mengikuti ketetapan pengurus.'],
     ['Bagaimana cara membayar? Apakah perlu upload bukti transfer?', 'Tidak perlu. Pembayaran diproses otomatis lewat virtual account, QRIS, e-wallet, atau kartu. Status berubah menjadi Berhasil dalam hitungan detik dan membership langsung aktif.'],
     ['Apakah pendaftaran harus menunggu persetujuan pengurus?', 'Membership aktif otomatis setelah pembayaran berhasil. Jika organisasi menerapkan approval pengurus, proses itu tidak menahan akses dasar Anda sebagai member.'],
     ['Bagaimana jika invoice kedaluwarsa?', 'Invoice yang tidak dibayar sampai batas waktu akan kedaluwarsa otomatis. Anda akan menerima notifikasi dan bisa membayar ulang dengan satu klik dari halaman status pendaftaran.'],
@@ -198,10 +198,10 @@
     const isEvent = R() < .55;
     const ev = pick(EVENTS.filter(e => e.price > 0));
     const m = pick(MEMBERS);
-    const amount = isEvent ? ev.price : 250000;
+    const amount = isEvent ? ev.price : 1500000;
     return {
       inv: 'INV/DOCI/' + '202610' + '/' + String(10234 - i).padStart(5, '0'),
-      who: m.name, whoId: m.id, item: isEvent ? ev.title : 'Membership Baru (Pendaftaran + Iuran)',
+      who: m.name, whoId: m.id, item: isEvent ? ev.title : 'Membership Baru (Biaya Join)',
       type: isEvent ? 'Kegiatan' : 'Membership', amount, method: pick(METHODS), status,
       date: new Date(TODAY.getTime() - Math.floor(R() * 40 * 86400000) - Math.floor(R() * 86400000)),
       manual: R() < .03
