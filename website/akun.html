@@ -65,6 +65,7 @@
     (function () {
       const { D, icon, esc, fmt, Store, Auth, Audit, toast, statusChip, eventCard, cardHTML, qrSvg, openDialog, closeDialog, Upload, $, $$ } = DOCI;
       let u = Auth.require(); if (!u) return;
+      { const fresh = Store.get('users', {})[u.phone]; if (fresh && fresh.vehicles) u = Object.assign({}, u, { vehicles: fresh.vehicles }); }
       const VIEWS = [['beranda', 'Beranda', 'home'], ['kegiatan', 'Kegiatan', 'calendar'], ['dokumentasi', 'Dokumentasi', 'image'], ['tracking', 'Tracking', 'pin'], ['kartu', 'Kartu', 'card']];
       const chapterName = (id) => (D.CHAPTERS.find(c => c.id === id) || {}).name || 'DOCI';
       const memberActive = () => u.status === 'aktif' && new Date(u.activeUntil) > new Date();
@@ -144,14 +145,14 @@
             ${act ? '' : `<div class="banner banner--danger small">${icon('x-circle')}<div>Kartu tidak berlaku karena membership kedaluwarsa.</div></div>`}
             <div class="row" style="gap:8px;margin-top:var(--space-3);flex-wrap:wrap"><button class="btn btn--secondary btn--sm" id="print">${icon('download', 'icon--16')}Cetak / Simpan PDF</button></div></section>
           <section class="card span-7"><div class="row row--between"><h2 class="card-title" style="margin:0">Profil</h2><button class="btn btn--ghost btn--sm" id="edit">${icon('pencil', 'icon--16')}Ubah</button></div>
-            <dl class="kv" style="margin-top:var(--space-3)"><div><dt>Nama</dt><dd>${esc(u.name)}</dd></div><div><dt>Telepon</dt><dd>${fmt.phone(u.phone)}</dd></div><div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Kota</dt><dd>${esc(u.city || '—')}</dd></div><div><dt>Motor</dt><dd>${esc(u.bike || '—')}</dd></div></dl>
+            <dl class="kv" style="margin-top:var(--space-3)"><div><dt>Nama</dt><dd>${esc(u.name)}</dd></div><div><dt>Telepon</dt><dd>${fmt.phone(u.phone)}</dd></div><div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Kota</dt><dd>${esc(u.city || '—')}</dd></div><div><dt>${u.vehicles && u.vehicles.length > 1 ? 'Motor (' + u.vehicles.length + ')' : 'Motor'}</dt><dd>${u.vehicles && u.vehicles.length ? u.vehicles.map(v => `<div class="sum-veh">Ducati ${esc(v.model)}${v.year ? ' (' + esc(v.year) + (v.color ? ', ' + esc(v.color) : '') + ')' : ''}<span class="small muted">${esc(v.plate || '')} · STNK ${v.stnk ? ({ terverifikasi: 'terverifikasi', ditolak: 'ditolak — unggah ulang', menunggu: 'menunggu verifikasi' }[v.stnk.status] || 'menunggu verifikasi') : 'belum diunggah'}</span></div>`).join('') : esc(u.bike || '—')}</dd></div></dl>
             <h3 style="font-size:16px;margin:var(--space-5) 0 0">Pengaturan</h3>
             ${[['notif', 'Notifikasi kegiatan & pembayaran', 'Pengingat via WhatsApp dan email.'], ['loc', 'Izinkan berbagi lokasi saat touring', 'Hanya aktif saat Anda memulai live tracking.'], ['vis', 'Tampilkan profil di direktori member', 'Hanya nama, chapter, dan motor. Nomor telepon tidak pernah tampil.']].map(s => `<div class="setting-row"><div><b id="l-${s[0]}">${s[1]}</b><span class="sub">${s[2]}</span></div><label class="switch"><input type="checkbox" data-pref="${s[0]}" aria-labelledby="l-${s[0]}" ${prefs[s[0]] ? 'checked' : ''}><span></span></label></div>`).join('')}
             <div style="margin-top:var(--space-4)"><button class="btn btn--ghost btn--sm" id="out" style="color:var(--color-danger)">${icon('logout', 'icon--16')}Keluar</button></div></section></div>`;
         $('#print').onclick = () => { $('#print-zone').innerHTML = cardHTML({ name: u.name, id: u.memberId || '', chapter: chapterName(u.chapter), until: u.activeUntil }); document.body.classList.add('print-card'); window.print(); setTimeout(() => document.body.classList.remove('print-card'), 500); };
         $('#out').onclick = Auth.logout;
         $('#edit').onclick = () => {
-          $('#e-name').value = u.name; $('#e-email').value = u.email || ''; $('#e-city').value = u.city || ''; $('#e-bike').value = u.bike || '';
+          $('#e-name').value = u.name; $('#e-email').value = u.email || ''; $('#e-city').value = u.city || ''; $('#e-bike').value = u.bike || ''; $('#e-bike').closest('.field').hidden = !!(u.vehicles && u.vehicles.length);
           $('#e-chapter').innerHTML = D.CHAPTERS.map(c => `<option value="${c.id}" ${c.id === u.chapter ? 'selected' : ''}>${c.name}</option>`).join('');
           openDialog('#edit-dlg');
         };
@@ -163,7 +164,7 @@
         e.preventDefault();
         const name = $('#e-name').value.trim(); if (!name) { toast({ type: 'error', title: 'Nama wajib diisi', msg: 'Masukkan nama lengkap Anda.' }); return; }
         const before = { name: u.name, chapter: u.chapter };
-        u = Object.assign({}, u, { name, email: $('#e-email').value.trim(), city: $('#e-city').value.trim(), bike: $('#e-bike').value.trim(), chapter: $('#e-chapter').value });
+        u = Object.assign({}, u, { name, email: $('#e-email').value.trim(), city: $('#e-city').value.trim(), bike: (u.vehicles && u.vehicles.length) ? u.bike : $('#e-bike').value.trim(), chapter: $('#e-chapter').value });
         Store.set('session', u);
         const users = Store.get('users', {}); if (users[u.phone]) { users[u.phone] = Object.assign({}, users[u.phone], { name: u.name, email: u.email, city: u.city, bike: u.bike, chapter: u.chapter }); Store.set('users', users); }
         Audit.log('ubah profil', u.memberId || u.phone, before, { name: u.name, chapter: u.chapter });

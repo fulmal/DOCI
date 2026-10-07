@@ -418,3 +418,30 @@ dialog.lightbox[open] { animation: fade-in var(--duration-base) ease-out; displa
 .error-page { min-height: 70vh; display: grid; place-items: center; text-align: center; padding: var(--space-8) 0; }
 .error-page .code { font-family: var(--font-display); font-size: 120px; font-weight: 900; color: var(--color-primary); line-height: 1; }
 .error-page .code span { display: inline-block; color: var(--color-carbon); transform: skewX(-10deg); }
+
+/* ---------- Pendaftaran: banyak kendaraan + foto STNK ---------- */
+.veh { position: relative; border: 1px solid var(--color-border); border-radius: var(--radius-lg, 12px); padding: var(--space-4, 16px); margin: 0 0 var(--space-4, 16px); background: #fff; min-width: 0; }
+.veh__head { padding: 0 8px; margin-left: -8px; }
+.veh__no { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 800; font-size: 14px; letter-spacing: .02em; text-transform: uppercase; color: var(--color-primary-dark, #a50017); }
+.veh__rm { position: absolute; top: 8px; right: 8px; color: var(--color-danger); }
+.veh__add { width: 100%; justify-content: center; margin-bottom: var(--space-2, 8px); }
+.stnk__box { min-height: 44px; }
+.stnk__ok { display: flex; gap: 14px; align-items: flex-start; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-cloud-100, #f7f7f8); }
+.stnk__thumb { width: 132px; max-width: 40%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border); background: #fff; flex: none; }
+.stnk__meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+.stnk__meta b { font-weight: 600; word-break: break-all; font-size: 14px; }
+.stnk__warn { display: flex; gap: 6px; align-items: flex-start; color: var(--color-warning-text); }
+.stnk__warn .icon { flex: none; margin-top: 2px; }
+.stnk__checking { display: flex; gap: 12px; align-items: center; padding: 16px; border: 1px dashed var(--color-slate-300); border-radius: var(--radius-md); }
+.stnk__checking > div { display: flex; flex-direction: column; }
+.stnk:has(input[type=file].sr-only:focus-visible) .stnk__box { outline: 3px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-md); }
+.sum-veh { display: block; padding: 2px 0; }
+.sum-veh .small { display: block; }
+.veh-rev { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.veh-rev__body { display: flex; gap: 12px; align-items: flex-start; }
+.veh-rev__img { width: 120px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border); display: block; }
+@media (max-width: 480px) {
+  .stnk__ok { flex-direction: column; }
+  .stnk__thumb { width: 100%; max-width: none; aspect-ratio: 16 / 9; }
+  .veh { padding: var(--space-3, 12px); }
+}

@@ -154,7 +154,12 @@
           inv.memberId = 'DOCI-' + String(now.getFullYear()).slice(2) + '-' + String(Math.floor(10000 + Math.random() * 89999));
           inv.activeUntil = until.toISOString();
           const p = inv.profile || {};
-          const user = { name: p.fullName || 'Member Baru', role: 'member', memberId: inv.memberId, chapter: p.chapter || 'jakarta', bike: 'Ducati ' + (p.model || '') + (p.year ? ` (${p.year}${p.color ? ', ' + p.color : ''})` : ''), email: p.email || '', city: p.city || '', activeUntil: inv.activeUntil, status: 'aktif' };
+          const vs = (p.vehicles && p.vehicles.length) ? p.vehicles : [{ model: p.model, year: p.year, color: p.color, plate: p.plate }];
+          const bikeOf = (v) => 'Ducati ' + (v.model || '') + (v.year ? ` (${v.year}${v.color ? ', ' + v.color : ''})` : '');
+          const thumbs = Store.get('stnk', {});
+          const vehicles = vs.map((v, i) => { const id = v.id || ('v' + i); if (v.stnk && v.stnk.thumb) thumbs[inv.memberId + ':' + id] = v.stnk.thumb; return { id, model: v.model, year: v.year, color: v.color, plate: v.plate, stnk: v.stnk ? { name: v.stnk.name, size: v.stnk.size, w: v.stnk.w, h: v.stnk.h, warns: v.stnk.warns || [], status: 'menunggu' } : null }; });
+          Store.set('stnk', thumbs); vs.forEach(v => { if (v.stnk) delete v.stnk.thumb; });
+          const user = { name: p.fullName || 'Member Baru', role: 'member', memberId: inv.memberId, chapter: p.chapter || 'jakarta', bike: vs.map(bikeOf).join(' · '), vehicles, email: p.email || '', city: p.city || '', activeUntil: inv.activeUntil, status: 'aktif' };
           Auth.registerUser(inv.phone, user); Store.set('session', Object.assign({ phone: inv.phone }, user)); Store.del('draft');
         } else if (inv.type === 'event') {
           const regs = Store.get('regs', []); if (!regs.find(r => r.inv === inv.id)) regs.unshift({ inv: inv.id, eventId: inv.eventId, phone: inv.phone, at: new Date().toISOString() }); Store.set('regs', regs);

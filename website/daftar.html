@@ -33,7 +33,7 @@
   <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/otp.js"></script>
   <script>
     (function () {
-      const { D, icon, esc, fmt, Store, Auth, toast, OtpFlow, Audit } = DOCI;
+      const { D, icon, esc, fmt, Store, Auth, toast, OtpFlow, Audit, confirmDialog } = DOCI;
       if (Auth.current() && Auth.current().status === 'aktif') { /* member aktif boleh melihat; tetap lanjut untuk demo */ }
       const STEPS = [
         { t: 'Verifikasi Nomor Telepon', s: 'Nomor telepon menjadi identitas utama akun Anda.', short: 'Verifikasi' },
@@ -43,7 +43,7 @@
         { t: 'Persetujuan', s: 'Baca dan setujui ketentuan berikut untuk melanjutkan.', short: 'Persetujuan' },
         { t: 'Ringkasan & Biaya', s: 'Periksa kembali data Anda sebelum membayar.', short: 'Bayar' }
       ];
-      let draft = Store.get('draft', { step: 0, phone: null, data: {}, files: {}, agree: {} });
+      let draft = Store.get('draft', { step: 0, phone: null, data: {}, files: {}, agree: {}, vehicles: [] });
       const form = document.getElementById('step-form');
       const save = () => { Store.set('draft', draft); document.getElementById('draft-label').textContent = 'Draft tersimpan ' + fmt.time(new Date()).replace(' WIB', ''); };
       const dots = document.getElementById('sp-dots');
@@ -64,7 +64,7 @@
         const bar = document.getElementById('sp-bar'); bar.setAttribute('aria-valuenow', i + 1); bar.firstElementChild.style.width = ((i + 1) / 6 * 100) + '%';
         dots.querySelectorAll('li').forEach((li, k) => { li.classList.toggle('is-done', k < i); li.classList.toggle('is-current', k === i); li.querySelector('.n').innerHTML = k < i ? icon('check', 'icon--16') : (k + 1); });
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        form.innerHTML = ''; form.onsubmit = null; form.oninput = null;
+        form.innerHTML = ''; form.onsubmit = null; form.oninput = null; form.onclick = null; form.onchange = null;
         ({ 0: s0, 1: s1, 2: s2, 3: s3, 4: s4, 5: s5 })[i]();
         document.getElementById('step-title').focus?.();
       }
@@ -106,18 +106,137 @@
           return ok;
         });
       }
-      /* Step 3 — kendaraan */
+      /* Step 3 — kendaraan (boleh lebih dari satu) + validasi foto STNK */
+      const MODELS = ['Panigale V4', 'Panigale V2', 'Streetfighter V4', 'Streetfighter V2', 'Monster', 'Multistrada V4', 'DesertX', 'Hypermotard', 'Diavel V4', 'SuperSport', 'Scrambler', 'Lainnya'];
+      const MAX_VEH = 5;
+      const STNK_RULE = { maxBytes: 5 * 1024 * 1024, minBytes: 15 * 1024, minShort: 480, minLong: 800 };
+      const newVeh = () => ({ id: 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), model: '', year: '', color: '', plate: '', stnk: null });
+      const plateKey = (p) => String(p || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const plateOk = (p) => /^[A-Z]{1,2}\d{1,4}[A-Z]{0,3}$/.test(plateKey(p));
+      const plateFmt = (p) => { const m = plateKey(p).match(/^([A-Z]{1,2})(\d{1,4})([A-Z]{0,3})$/); return m ? [m[1], m[2], m[3]].filter(Boolean).join(' ') : String(p || '').toUpperCase().trim(); };
+      function vehicles() {
+        if (!Array.isArray(draft.vehicles) || !draft.vehicles.length) {
+          const o = d(), v = newVeh(); /* migrasi draft lama (1 kendaraan) */
+          if (o.model) Object.assign(v, { model: o.model, year: o.year || '', color: o.color || '', plate: o.plate || '' });
+          draft.vehicles = [v];
+        }
+        return draft.vehicles;
+      }
+      const bikeLabel = (v) => `Ducati ${v.model || '—'}${v.year ? ' (' + v.year + (v.color ? ', ' + v.color : '') + ')' : ''}`;
+
+      /* Pemeriksaan awal foto STNK — murni di perangkat (tanpa OCR/server). */
+      async function checkStnk(file) {
+        const mb = (file.size / 1048576).toFixed(1);
+        if (/heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name)) return { error: 'Format HEIC belum didukung. Ubah kamera ke "Paling Kompatibel" (JPG) atau ekspor sebagai JPG.' };
+        if (file.size > STNK_RULE.maxBytes) return { error: `Ukuran foto ${mb} MB melebihi batas 5 MB. Kecilkan resolusi atau kompres dulu ya.` };
+        if (file.size < STNK_RULE.minBytes) return { error: 'Berkas terlalu kecil untuk foto dokumen. Gunakan foto asli STNK, bukan tangkapan layar kecil.' };
+        const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+        const isJpg = head[0] === 0xFF && head[1] === 0xD8 && head[2] === 0xFF, isPng = head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4E && head[3] === 0x47;
+        if (!isJpg && !isPng) return { error: file.type === 'application/pdf' ? 'STNK harus berupa foto (JPG/PNG), bukan PDF.' : 'Isi berkas bukan foto JPG/PNG yang valid. Coba foto ulang STNK Anda.' };
+        const url = URL.createObjectURL(file);
+        try {
+          const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; }).catch(() => null);
+          if (!im) return { error: 'Foto tidak bisa dibuka — berkas mungkin rusak. Coba foto ulang.' };
+          const w = im.naturalWidth, h = im.naturalHeight, short = Math.min(w, h), long = Math.max(w, h);
+          if (short < STNK_RULE.minShort || long < STNK_RULE.minLong) return { error: `Resolusi ${w}×${h} px terlalu kecil. Minimal ${STNK_RULE.minLong}×${STNK_RULE.minShort} px agar tulisan terbaca.` };
+          if (long / short > 3) return { error: 'Bentuk foto terlalu memanjang untuk dokumen STNK. Foto seluruh lembar STNK dari atas.' };
+          /* analisis kecerahan, kontras, ketajaman pada versi 400 px */
+          const sc = Math.min(1, 400 / long), cw = Math.max(8, Math.round(w * sc)), ch = Math.max(8, Math.round(h * sc));
+          const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(im, 0, 0, cw, ch);
+          const px = cx.getImageData(0, 0, cw, ch).data, n = cw * ch, g = new Float32Array(n); let sum = 0;
+          for (let i = 0, j = 0; i < n; i++, j += 4) { const v = 0.299 * px[j] + 0.587 * px[j + 1] + 0.114 * px[j + 2]; g[i] = v; sum += v; }
+          const mean = sum / n; let vs = 0; for (let i = 0; i < n; i++) vs += (g[i] - mean) * (g[i] - mean); const std = Math.sqrt(vs / n);
+          if (mean < 50) return { error: 'Foto terlalu gelap. Foto ulang di tempat yang lebih terang.' };
+          if (mean > 238) return { error: 'Foto terlalu terang/silau sehingga tulisan hilang. Hindari pantulan lampu atau flash.' };
+          if (std < 14) return { error: 'Foto nyaris polos — dokumen tidak terlihat. Pastikan STNK ada di dalam bingkai.' };
+          let ls = 0, lq = 0, lc = 0; for (let y = 1; y < ch - 1; y++) for (let x = 1; x < cw - 1; x++) { const c = y * cw + x, l = 4 * g[c] - g[c - 1] - g[c + 1] - g[c - cw] - g[c + cw]; ls += l; lq += l * l; lc++; }
+          const lapVar = lq / lc - (ls / lc) * (ls / lc);
+          const warns = []; if (lapVar < 40) warns.push('Foto tampak kurang tajam. Disarankan foto ulang agar nomor & nama terbaca jelas.'); if (short < 700) warns.push('Resolusi cukup rendah; pastikan tulisan masih terbaca.');
+          /* thumbnail kecil untuk pratinjau & tinjauan admin (hemat penyimpanan browser) */
+          const ts = Math.min(1, 480 / long), tc = document.createElement('canvas'); tc.width = Math.round(w * ts); tc.height = Math.round(h * ts); tc.getContext('2d').drawImage(im, 0, 0, tc.width, tc.height);
+          return { stnk: { name: file.name, size: file.size, w, h, thumb: tc.toDataURL('image/jpeg', 0.6), warns, checkedAt: new Date().toISOString() } };
+        } finally { URL.revokeObjectURL(url); }
+      }
+      const stnkBox = (v, i) => {
+        if (v.stnk) {
+          const s = v.stnk;
+          return `<div class="stnk__ok"><img class="stnk__thumb" src="${s.thumb}" alt="Pratinjau foto STNK kendaraan ${i + 1}">
+            <div class="stnk__meta"><span class="chip chip--success">${icon('check-circle', 'icon--16')}Lolos pemeriksaan awal</span>
+              <b>${esc(s.name)}</b><span class="small muted">${s.w}×${s.h} px · ${(s.size / 1048576).toFixed(2)} MB</span>
+              ${(s.warns || []).map(w => `<span class="stnk__warn small">${icon('alert', 'icon--16')}${esc(w)}</span>`).join('')}
+              <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn btn--ghost btn--sm" data-replace="${v.id}">${icon('refresh', 'icon--16')}Ganti foto</button><button type="button" class="btn btn--ghost btn--sm" data-clear="${v.id}">${icon('trash', 'icon--16')}Hapus</button></div></div></div>`;
+        }
+        return `<label class="dropzone" for="${v.id}-stnk" style="display:block">${icon('image', 'icon--32')}<b>Pilih foto STNK</b> atau ambil dengan kamera<div class="help">JPG atau PNG · maks 5 MB · minimal ${STNK_RULE.minLong}×${STNK_RULE.minShort} px</div></label>`;
+      };
+      const vehCard = (v, i, n) => {
+        const id = (k) => `${v.id}-${k}`;
+        const err = (k) => `<span class="error-text" id="${id(k)}-e" role="alert">${icon('alert', 'icon--16')}<span></span></span>`;
+        const fld = (k, label, inner, help) => `<div class="field"><label for="${id(k)}">${label}<span class="req" aria-hidden="true">*</span></label>${inner}${help ? `<span class="help" id="${id(k)}-h">${help}</span>` : ''}${err(k)}</div>`;
+        const aria = (k, h) => `aria-describedby="${id(k)}-e${h ? ' ' + id(k) + '-h' : ''}"`;
+        return `<fieldset class="veh" data-veh="${v.id}"><legend class="veh__head"><span class="veh__no">${icon('bike', 'icon--16')}Kendaraan ${i + 1}</span></legend>
+          ${n > 1 ? `<button type="button" class="btn btn--ghost btn--sm veh__rm" data-remove="${v.id}" aria-label="Hapus kendaraan ${i + 1}">${icon('trash', 'icon--16')}Hapus</button>` : ''}
+          ${fld('model', 'Model Ducati', `<select class="select" id="${id('model')}" data-v="${v.id}" data-k="model" required ${aria('model')}><option value="">Pilih model…</option>${MODELS.map(m => `<option ${v.model === m ? 'selected' : ''}>${m}</option>`).join('')}</select>`)}
+          <div class="form-row form-row--2">${fld('year', 'Tahun kendaraan', `<input class="input" id="${id('year')}" data-v="${v.id}" data-k="year" type="number" min="1990" max="2027" inputmode="numeric" placeholder="2023" value="${esc(v.year)}" required ${aria('year')}>`)}${fld('color', 'Warna', `<input class="input" id="${id('color')}" data-v="${v.id}" data-k="color" placeholder="Merah" value="${esc(v.color)}" required ${aria('color')}>`)}</div>
+          ${fld('plate', 'Nomor registrasi (plat)', `<input class="input" id="${id('plate')}" data-v="${v.id}" data-k="plate" placeholder="B 1234 XYZ" value="${esc(v.plate)}" autocapitalize="characters" style="text-transform:uppercase" required ${aria('plate', 1)}>`, 'Tidak akan ditampilkan di direktori publik.')}
+          <div class="field stnk"><span class="field-label" id="${id('stnk')}-l">Foto STNK<span class="req" aria-hidden="true">*</span></span>
+            <div class="stnk__box" id="${id('stnk')}-box" aria-live="polite">${stnkBox(v, i)}</div>
+            <input class="sr-only" type="file" id="${id('stnk')}" data-v="${v.id}" data-k="stnk" accept="image/jpeg,image/png" aria-labelledby="${id('stnk')}-l" aria-describedby="${id('stnk')}-e ${id('stnk')}-h">
+            <span class="help" id="${id('stnk')}-h">Foto seluruh lembar STNK dari atas: tulisan jelas, tidak silau, semua sudut terlihat. Nomor pada foto harus sama dengan yang Anda isi.</span>${err('stnk')}</div></fieldset>`;
+      };
       function s2() {
-        const models = ['Panigale V4', 'Panigale V2', 'Streetfighter V4', 'Streetfighter V2', 'Monster', 'Multistrada V4', 'DesertX', 'Hypermotard', 'Diavel V4', 'SuperSport', 'Scrambler', 'Lainnya'];
-        form.innerHTML = `<div class="field"><label for="model">Model Ducati<span class="req" aria-hidden="true">*</span></label><select class="select" id="model" name="model" required aria-describedby="model-e"><option value="">Pilih model…</option>${models.map(m => `<option ${d().model === m ? 'selected' : ''}>${m}</option>`).join('')}</select><span class="error-text" id="model-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>` +
-          `<div class="form-row form-row--2">${F('year', 'Tahun kendaraan', { type: 'number', value: d().year || '', ph: '2023', attrs: 'min="1990" max="2027" inputmode="numeric"' })}${F('color', 'Warna', { value: d().color || '', ph: 'Merah' })}</div>` +
-          F('plate', 'Nomor registrasi (plat)', { value: d().plate || '', ph: 'B 1234 XYZ', help: 'Tidak akan ditampilkan di direktori publik.', attrs: 'style="text-transform:uppercase"' }) +
-          `<div class="field"><label for="bikephoto">Foto kendaraan <span class="muted small">(opsional)</span></label><input class="input" type="file" id="bikephoto" accept="image/*"></div>` + nav();
-        wireNav(() => {
-          let ok = req('model', 'Pilih model Ducati Anda.');
-          const y = form.querySelector('#year'); if (!y.value || +y.value < 1990 || +y.value > 2027) { fieldErr(y, 'Isi tahun antara 1990–2027.'); ok = false; }
-          ok = req('color', 'Warna wajib diisi.') && ok; ok = req('plate', 'Nomor registrasi wajib diisi.') && ok; return ok;
-        });
+        const list = vehicles(), byId = (id) => list.find(x => x.id === id);
+        const q = (v, k) => form.querySelector('#' + v.id + '-' + k);
+        const draw = () => {
+          form.innerHTML = `<div class="banner banner--info" style="margin-bottom:16px">${icon('shield')}<div><b>Boleh lebih dari satu Ducati</b>Tambahkan semua kendaraan Anda (maks ${MAX_VEH}). Setiap kendaraan memerlukan foto STNK yang diperiksa admin sebelum status kendaraan terverifikasi.</div></div>` +
+            list.map((v, i) => vehCard(v, i, list.length)).join('') +
+            `<button type="button" class="btn btn--secondary veh__add" data-add ${list.length >= MAX_VEH ? 'disabled' : ''}>${icon('plus', 'icon--16')}Tambah kendaraan${list.length >= MAX_VEH ? ' (batas tercapai)' : ''}</button>` + nav();
+          wire();
+        };
+        const sync = (e) => { const t = e.target, v = t.dataset && t.dataset.v ? byId(t.dataset.v) : null; if (!v || !t.dataset.k || t.type === 'file') return; v[t.dataset.k] = t.dataset.k === 'plate' ? t.value.toUpperCase() : t.value; save(); };
+        async function onStnk(inp) {
+          const v = byId(inp.dataset.v), file = inp.files[0]; if (!v || !file) return;
+          const i = list.indexOf(v), box = form.querySelector('#' + v.id + '-stnk-box'); fieldErr(inp, '');
+          box.innerHTML = `<div class="stnk__checking"><span class="spinner"></span><div><b>Memeriksa foto…</b><span class="small muted">Format, ukuran, resolusi, kecerahan & ketajaman.</span></div></div>`;
+          const r = await checkStnk(file).catch(() => ({ error: 'Foto tidak bisa diproses. Coba pilih foto lain.' }));
+          inp.value = '';
+          const box2 = form.querySelector('#' + v.id + '-stnk-box'), inp2 = form.querySelector('#' + v.id + '-stnk'); if (!box2) { if (r.stnk) { v.stnk = r.stnk; save(); } return; }
+          if (r.error) { box2.innerHTML = stnkBox(v, i); fieldErr(inp2, r.error); toast({ type: 'error', title: 'Foto STNK ditolak', msg: r.error }); return; }
+          v.stnk = r.stnk; save(); box2.innerHTML = stnkBox(v, i); fieldErr(inp2, '');
+          toast({ type: r.stnk.warns.length ? 'warning' : 'success', title: r.stnk.warns.length ? 'Foto STNK diterima dengan catatan' : 'Foto STNK diterima', msg: r.stnk.warns[0] || 'Lolos pemeriksaan awal. Admin akan memverifikasi kecocokan data.' });
+        }
+        function wire() {
+          wireNav(() => {
+            let ok = true; const seen = {};
+            list.forEach((v, i) => {
+              if (!v.model) { fieldErr(q(v, 'model'), 'Pilih model Ducati Anda.'); ok = false; }
+              const y = +v.year; if (!v.year || y < 1990 || y > 2027) { fieldErr(q(v, 'year'), 'Isi tahun antara 1990–2027.'); ok = false; }
+              if (!String(v.color).trim()) { fieldErr(q(v, 'color'), 'Warna wajib diisi.'); ok = false; }
+              const pk = plateKey(v.plate);
+              if (!pk) { fieldErr(q(v, 'plate'), 'Nomor registrasi wajib diisi.'); ok = false; }
+              else if (!plateOk(v.plate)) { fieldErr(q(v, 'plate'), 'Format plat belum sesuai, mis. B 1234 XYZ.'); ok = false; }
+              else if (seen[pk] !== undefined) { fieldErr(q(v, 'plate'), `Nomor ini sudah diisi di kendaraan ${seen[pk] + 1}.`); ok = false; }
+              else { seen[pk] = i; v.plate = plateFmt(v.plate); }
+              if (!v.stnk) { fieldErr(q(v, 'stnk'), 'Foto STNK wajib diunggah untuk setiap kendaraan.'); ok = false; }
+            });
+            if (!ok) { const first = list.map(v => form.querySelector('[data-veh="' + v.id + '"] .has-error')).find(Boolean); if (first) first.scrollIntoView({ block: 'center' }); }
+            return ok;
+          });
+          const base = form.oninput; form.oninput = (e) => { sync(e); base(e); };
+          form.onchange = (e) => { sync(e); if (e.target.type === 'file') onStnk(e.target); };
+          form.onclick = async (e) => {
+            const add = e.target.closest('[data-add]'), rm = e.target.closest('[data-remove]'), rp = e.target.closest('[data-replace]'), cl = e.target.closest('[data-clear]');
+            if (add && list.length < MAX_VEH) { list.push(newVeh()); save(); draw(); form.querySelector('[data-veh]:last-of-type select')?.focus(); return; }
+            if (rp) { form.querySelector('#' + rp.dataset.replace + '-stnk').click(); return; }
+            if (cl) { const v = byId(cl.dataset.clear); v.stnk = null; save(); form.querySelector('#' + v.id + '-stnk-box').innerHTML = stnkBox(v, list.indexOf(v)); form.querySelector('#' + v.id + '-stnk').focus(); return; }
+            if (rm) {
+              const v = byId(rm.dataset.remove), i = list.indexOf(v);
+              const filled = v.model || v.plate || v.stnk;
+              if (filled && !(await confirmDialog({ title: `Hapus kendaraan ${i + 1}?`, body: 'Data dan foto STNK kendaraan ini akan dihapus dari formulir.', confirmText: 'Ya, hapus', danger: true }))) return;
+              list.splice(i, 1); save(); draw(); toast({ type: 'success', msg: 'Kendaraan dihapus dari formulir.' });
+            }
+          };
+        }
+        draw();
       }
       /* Step 4 — chapter & dokumen */
       function docField(key, label, extra) {
@@ -160,7 +279,7 @@
       /* Step 6 — ringkasan */
       function s5() {
         const c = D.CHAPTERS.find(x => x.id === d().chapter);
-        form.innerHTML = `<dl class="kv"><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Kendaraan</dt><dd>Ducati ${esc(d().model)} · ${esc(d().year)} · ${esc(d().color)}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah</dd></div></dl>
+        form.innerHTML = `<dl class="kv"><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Kendaraan (${vehicles().length})</dt><dd>${vehicles().map(v => `<div class="sum-veh">${esc(bikeLabel(v))}<span class="small muted">${esc(v.plate)} · STNK ${v.stnk ? 'terunggah' : 'belum ada'}</span></div>`).join('')}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah · ${vehicles().filter(v => v.stnk).length} STNK menunggu verifikasi admin</dd></div></dl>
         <h3 style="margin:24px 0 8px;font-size:17px">Rincian Biaya</h3>
         <dl class="kv kv--total"><div><dt>Biaya pendaftaran</dt><dd class="num">Rp 150.000</dd></div><div><dt>Iuran tahunan (12 bulan)</dt><dd class="num">Rp 100.000</dd></div><div><dt>Total</dt><dd class="num">Rp 250.000</dd></div></dl>
         <p class="help" style="margin-top:8px">Biaya layanan metode pembayaran (jika ada) ditampilkan di langkah berikutnya. Pembayaran otomatis — tidak perlu unggah bukti transfer.</p>
@@ -171,7 +290,7 @@
           const now = new Date(), seq = String(Math.floor(10000 + Math.random() * 89999));
           const inv = { id: 'INV/DOCI/' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '/' + seq, regNo: 'REG-' + String(now.getFullYear()).slice(2) + String(now.getMonth() + 1).padStart(2, '0') + '-' + seq, type: 'membership', title: 'Membership Baru DOCI', phone: draft.phone,
             items: [{ label: 'Biaya pendaftaran', amount: 150000 }, { label: 'Iuran tahunan (12 bulan)', amount: 250000 - 150000 }], amount: 250000, status: 'menunggu', created: now.toISOString(), expires: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
-            profile: Object.assign({}, draft.data, { phone: draft.phone }) };
+            profile: Object.assign({}, draft.data, { phone: draft.phone }, { model: vehicles()[0].model, year: vehicles()[0].year, color: vehicles()[0].color, plate: vehicles()[0].plate, vehicles: vehicles().map(v => ({ id: v.id, model: v.model, year: v.year, color: v.color, plate: v.plate, stnk: v.stnk ? Object.assign({}, v.stnk, { status: 'menunggu' }) : null })) }) };
           const all = Store.get('invoices', []); all.unshift(inv); Store.set('invoices', all);
           Audit.log('buat invoice', inv.id, null, { status: 'menunggu' });
           setTimeout(() => { location.href = 'bayar.html?inv=' + encodeURIComponent(inv.id); }, 500);
