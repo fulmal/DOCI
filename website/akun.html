@@ -92,9 +92,8 @@
         const pending = myInvoices().filter(i => i.status === 'menunggu' && new Date(i.expires) > new Date());
         const live = D.EVENTS.find(e => e.status === 'berlangsung' && e.tracking);
         $('#v-beranda').innerHTML = `
-          ${!act ? `<div class="banner banner--danger" style="margin-bottom:var(--space-4)"><span>${icon('x-circle', 'icon--24')}</span><div><b>Membership Anda tidak aktif</b>Perpanjang untuk kembali bisa mendaftar kegiatan, mengunggah dokumentasi, dan memakai live tracking. <a href="daftar.html"><b>Perpanjang sekarang</b></a></div></div>`
+          ${!act ? `<div class="banner banner--danger" style="margin-bottom:var(--space-4)"><span>${icon('x-circle', 'icon--24')}</span><div><b>Membership Anda tidak aktif</b>Perpanjang untuk kembali bisa mendaftar kegiatan dan mengunggah dokumentasi. <a href="daftar.html"><b>Perpanjang sekarang</b></a></div></div>`
             : left <= 30 ? `<div class="banner banner--warning" style="margin-bottom:var(--space-4)"><span>${icon('clock', 'icon--24')}</span><div><b>Membership berakhir ${left} hari lagi</b>Perpanjang sebelum ${fmt.date(u.activeUntil)} agar akses Anda tidak terputus. <a href="daftar.html"><b>Perpanjang</b></a></div></div>` : ''}
-          ${live ? `<div class="banner banner--red" style="margin-bottom:var(--space-4)"><span>${icon('activity', 'icon--24')}</span><div class="grow"><b>${esc(live.title)} sedang berlangsung</b>Pantau rombongan dan bagikan lokasi Anda.</div><a class="btn btn--sm" href="tracking.html">Buka Live Tracking</a></div>` : ''}
           <div class="dash-grid">
             <section class="card span-5" aria-labelledby="h-ms"><h2 class="card-title" id="h-ms">Keanggotaan</h2>
               <dl class="kv"><div><dt>Status</dt><dd>${act ? statusChip('aktif') : statusChip('memberKedaluwarsa')}</dd></div><div><dt>Member ID</dt><dd class="mono">${esc(u.memberId || '—')}</dd></div><div><dt>Berlaku s.d.</dt><dd>${fmt.date(u.activeUntil)}</dd></div><div><dt>Chapter</dt><dd>${esc(chapterName(u.chapter))}</dd></div></dl>

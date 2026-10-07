@@ -254,7 +254,7 @@
   const NAV = [
     { label: 'Tentang', key: 'tentang', items: [['Sejarah', 'tentang.html#sejarah', 'history'], ['Profil, Visi & Misi', 'tentang.html#profil', 'flag'], ['Struktur Organisasi', 'tentang.html#struktur', 'users'], ['AD/ART & Dokumen', 'dokumen.html', 'file']] },
     { label: 'Keanggotaan', key: 'membership', items: [['Join Us', 'membership.html', 'user'], ['Benefit Member', 'membership.html#benefit', 'star'], ['Direktori Member', 'membership.html#direktori', 'users'], ['Area Member', 'akun.html', 'card']] },
-    { label: 'Kegiatan', key: 'kegiatan', items: [['Kalender Kegiatan', 'kegiatan.html', 'calendar'], ['Touring', 'kegiatan.html?cat=touring', 'navigation'], ['Riding & Track Day', 'kegiatan.html?cat=riding', 'bike'], ['Sosial', 'kegiatan.html?cat=sosial', 'heart'], ['Live Tracking', 'tracking.html', 'pin']] },
+    { label: 'Kegiatan', key: 'kegiatan', items: [['Kalender Kegiatan', 'kegiatan.html', 'calendar'], ['Touring', 'kegiatan.html?cat=touring', 'navigation'], ['Riding & Track Day', 'kegiatan.html?cat=riding', 'bike'], ['Sosial', 'kegiatan.html?cat=sosial', 'heart']] },
     { label: 'Berita', key: 'berita', href: 'berita.html' },
     { label: 'Galeri', key: 'galeri', href: 'galeri.html' },
     { label: 'Chapter', key: 'chapter', href: 'chapter.html' },
@@ -370,7 +370,7 @@
         </div>
         ${g('Kontak', `<ul class="footer-contact"><li>${icon('pin', 'icon--16')}<span>Sekretariat DOCI<br>Jakarta, Indonesia<br><span style="opacity:.7">(alamat final menyusul)</span></span></li><li>${icon('phone', 'icon--16')}<span>+62 812-0000-0000</span></li><li>${icon('mail', 'icon--16')}<a href="mailto:halo@doci.example">halo@doci.example</a></li></ul>`)}
         ${g('Menu', `<ul><li><a href="tentang.html">Tentang DOCI</a></li><li><a href="kegiatan.html">Kalender Kegiatan</a></li><li><a href="berita.html">Berita</a></li><li><a href="galeri.html">Galeri</a></li><li><a href="chapter.html">Chapter</a></li><li><a href="dokumen.html">AD/ART & Dokumen</a></li></ul>`)}
-        ${g('Keanggotaan', `<ul><li><a href="membership.html">Join Us</a></li><li><a href="membership.html#benefit">Benefit Member</a></li><li><a href="masuk.html">Masuk</a></li><li><a href="akun.html">Area Member</a></li><li><a href="tracking.html">Live Tracking</a></li><li><a href="admin.html">Admin Panel</a></li></ul>`)}
+        ${g('Keanggotaan', `<ul><li><a href="membership.html">Join Us</a></li><li><a href="membership.html#benefit">Benefit Member</a></li><li><a href="masuk.html">Masuk</a></li><li><a href="akun.html">Area Member</a></li><li><a href="admin.html">Admin Panel</a></li></ul>`)}
         ${g('Gabung Newsletter', `<p style="font-size:14px;margin:0 0 4px">Kabar kegiatan terbaru langsung ke WhatsApp/email Anda.</p><form class="newsletter" data-newsletter><label class="sr-only" for="nl-email">Email atau nomor WhatsApp</label><input class="input" id="nl-email" type="text" placeholder="Email / nomor WhatsApp" required><button class="btn btn--sm" type="submit">Daftar</button></form>`)}
       </div>
       <div class="footer-bottom"><span>© ${new Date().getFullYear()} Komunitas Ducati Indonesia (DOCI). Hak cipta dilindungi.</span><nav aria-label="Tautan hukum"><a href="dokumen.html">Kebijakan Privasi</a><a href="dokumen.html">Kode Etik</a></nav></div>

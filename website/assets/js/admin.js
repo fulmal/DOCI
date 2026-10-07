@@ -55,7 +55,7 @@
   /* ---------- Nav ---------- */
   const NAV = [
     ['Utama', null], ['dashboard', 'Dashboard', 'dashboard', 'all'],
-    ['Kelola', null], ['member', 'Member', 'users', 'all'], ['kegiatan', 'Kegiatan', 'calendar', 'all'], ['dokumentasi', 'Dokumentasi', 'image', 'all'], ['pembayaran', 'Pembayaran', 'wallet', 'all'], ['tracking', 'Live Tracking', 'pin', 'all'], ['konten', 'Konten & Berita', 'newspaper', 'all'],
+    ['Kelola', null], ['member', 'Member', 'users', 'all'], ['kegiatan', 'Kegiatan', 'calendar', 'all'], ['dokumentasi', 'Dokumentasi', 'image', 'all'], ['pembayaran', 'Pembayaran', 'wallet', 'all'], ['konten', 'Konten & Berita', 'newspaper', 'all'],
     ['Sistem', null], ['role', 'Role & Izin', 'shield', 'super'], ['audit', 'Audit Log', 'history', 'super'], ['pengaturan', 'Pengaturan', 'settings', 'super']
   ];
   const TITLES = { dashboard: 'Dashboard', member: 'Manajemen Member', kegiatan: 'Manajemen Kegiatan', dokumentasi: 'Moderasi Dokumentasi', pembayaran: 'Pembayaran & Transaksi', tracking: 'Live Tracking Monitor', konten: 'Konten & Berita', role: 'Role & Izin', audit: 'Audit Log', pengaturan: 'Pengaturan Sistem' };

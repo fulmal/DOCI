@@ -36,7 +36,7 @@
       function cta() {
         if (e.status === 'selesai') return `<div class="banner banner--info">${icon('check')}<div><b>Kegiatan telah selesai</b>Lihat dokumentasi di <a href="galeri.html">galeri</a>.</div></div>`;
         if (mine) return `<div class="banner banner--success">${icon('check-circle')}<div><b>Anda sudah terdaftar</b>QR check-in ada di <a href="akun.html#kegiatan">Kegiatan Saya</a>.</div></div>`;
-        if (e.status === 'berlangsung') return `<a class="btn btn--block btn--lg" href="tracking.html">${icon('navigation')}Mulai Tracking Touring</a><p class="small muted" style="margin:8px 0 0">Kegiatan sedang berlangsung. Pendaftar dapat berbagi lokasi.</p>`;
+        if (e.status === 'berlangsung') return `<div class="banner banner--info">${icon('check')}<div><b>Kegiatan sedang berlangsung</b>Semoga seluruh peserta diberi keselamatan &amp; kelancaran.</div></div>`;
         if (left <= 0) return `<button class="btn btn--block btn--lg" id="reg">Masuk Waiting List</button><p class="small muted" style="margin:8px 0 0">Kuota penuh. Anda otomatis dinotifikasi jika ada slot.</p>`;
         return `<button class="btn btn--block btn--lg" id="reg">${e.price ? 'Daftar & Bayar ' + fmt.rpRaw(e.price) : 'Daftar Kegiatan (Gratis)'}</button>`;
       }
@@ -44,7 +44,7 @@
       root.innerHTML = `
         <section class="event-hero"><img src="${e.img}" alt="" width="1400" height="768"><div class="container">
           <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="index.html">Beranda</a></li><li><a href="kegiatan.html">Kegiatan</a></li><li><span aria-current="page">${esc(e.title)}</span></li></ol></nav>
-          <div class="row" style="margin-bottom:12px"><span class="chip" style="background:${c.color};color:#fff">${c.label}</span>${statusChip(e.status)}${e.tracking ? `<span class="chip chip--dark">${icon('navigation')}Live tracking</span>` : ''}</div>
+          <div class="row" style="margin-bottom:12px"><span class="chip" style="background:${c.color};color:#fff">${c.label}</span>${statusChip(e.status)}</div>
           <h1>${esc(e.title)}</h1>
           <div class="media-card__meta" style="color:rgba(255,255,255,.9);font-size:14px"><span>${icon('calendar', 'icon--16')}${fmt.range(e.start, e.end)}</span><span>${icon('pin', 'icon--16')}${esc(e.loc)}</span></div></div></section>
         <section class="section" style="padding-top:var(--space-6)"><div class="container event-layout">

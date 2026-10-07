@@ -11,128 +11,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
-  <style>body { overflow: hidden; } .trk__head .row { gap: 8px; flex-wrap: wrap; } .trk__tools { display: grid; gap: 8px; }</style>
 </head>
 <body data-page="kegiatan">
   <div id="site-header"></div>
-  <main id="main" class="trk">
-    <div class="trk__map">
-      <div id="map" role="application" aria-label="Peta posisi peserta touring"></div>
-      <div class="map-ctl" role="group" aria-label="Kontrol peta">
-        <button id="b-layer" aria-pressed="false" aria-label="Ganti tampilan satelit" title="Satelit"></button>
-        <button id="b-fit" aria-label="Lihat seluruh rute" title="Seluruh rute"></button>
-        <button id="b-me" aria-label="Kembali ke posisi saya" title="Posisi saya"></button>
-        <button id="b-full" aria-label="Layar penuh" title="Layar penuh"></button>
-      </div>
-      <div class="map-legend" aria-label="Legenda peta">
-        <span><i></i>Rute touring</span>
-        <span><i class="d"></i>Peserta online</span>
-        <span><i class="d off"></i>Peserta offline</span>
-      </div>
-      <div class="live-pill" role="status" aria-live="polite"><span class="dot dot--pulse" aria-hidden="true"></span><span id="prog-pill">Memuat posisi…</span></div>
-    </div>
-
-    <aside class="trk__panel" id="panel" aria-label="Panel peserta">
-      <button class="trk__grab" id="grab" aria-expanded="false" aria-controls="panel-body"><span class="small" style="font-weight:700" id="grab-label">Peserta &amp; kontrol</span></button>
-      <div id="panel-body" style="display:flex;flex-direction:column;min-height:0;flex:1">
-        <div class="trk__head">
-          <span class="chip chip--danger" id="st-chip"></span>
-          <h1>Touring Jakarta–Bandung via Puncak</h1>
-          <div class="small muted" id="vis-info"></div>
-          <div class="trk__stats" id="stats"></div>
-        </div>
-        <div class="trk__list" id="list" aria-live="off"></div>
-        <div class="trk__foot">
-          <div id="guest-note" class="banner banner--info small" hidden></div>
-          <div class="trk__tools" id="tools">
-            <button class="btn btn--block" id="b-share"></button>
-            <button class="btn btn--block sos-btn" id="b-sos" hidden></button>
-            <div class="field" style="margin:0"><label class="field-label" for="interval">Mode hemat data</label>
-              <select class="select" id="interval"><option value="2000">Normal — update tiap 2 detik</option><option value="6000">Hemat — tiap 6 detik</option><option value="15000">Sangat hemat — tiap 15 detik</option></select></div>
+  <main id="main">
+    <section class="section" style="padding:var(--space-8) 0">
+      <div class="container" style="max-width:600px;text-align:center">
+        <div class="card stack" style="align-items:center;padding:var(--space-6)">
+          <div style="width:64px;height:64px;border-radius:50%;background:var(--color-neutral-100);display:flex;align-items:center;justify-content:center;color:var(--color-primary)">
+            <svg class="icon icon--32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
           </div>
+          <h2>Live Tracking Non-Aktif</h2>
+          <p class="muted">Fitur Live Tracking saat ini sedang ditangguhkan sementara.</p>
+          <a class="btn btn--primary" href="index.html">Kembali ke Beranda</a>
         </div>
       </div>
-    </aside>
+    </section>
   </main>
-
-  <dialog class="modal" id="consent" aria-labelledby="consent-title">
-    <div class="modal__head"><h2 id="consent-title">Bagikan lokasi Anda?</h2><button class="icon-btn" data-close aria-label="Tutup"></button></div>
-    <div class="modal__body stack">
-      <p style="margin:0">Lokasi Anda hanya dibagikan <b>selama kegiatan berlangsung</b> dan <b>hanya kepada peserta &amp; panitia</b> kegiatan ini. Anda bisa berhenti kapan saja.</p>
-      <ul class="check-list">
-        <li><span id="ck1"></span>Dipakai untuk keselamatan dan koordinasi rombongan.</li>
-        <li><span id="ck2"></span>Berhenti otomatis saat kegiatan selesai.</li>
-        <li><span id="ck3"></span>Riwayat lokasi dihapus sesuai kebijakan privasi (UU PDP).</li>
-      </ul>
-      <p class="small muted" style="margin:0">Demo: lokasi disimulasikan, tidak ada data GPS asli perangkat Anda yang dibaca.</p>
-    </div>
-    <div class="modal__foot"><button class="btn btn--ghost" data-close>Nanti Saja</button><button class="btn" id="consent-ok">Izinkan &amp; Mulai</button></div>
-  </dialog>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/tracking.js"></script>
-  <script>
-    (function () {
-      const { icon, Auth, toast, confirmDialog, openDialog, closeDialog, $ } = DOCI;
-      const u = Auth.current();
-      const isMember = !!u;
-      const T = DOCI.Tracking.create({ mapEl: $('#map'), listEl: $('#list'), statsEl: $('#stats'), anon: !isMember });
-
-      $('#b-layer').innerHTML = icon('map', 'icon--24'); $('#b-fit').innerHTML = icon('flag', 'icon--24');
-      $('#b-me').innerHTML = icon('mapfocus', 'icon--24'); $('#b-full').innerHTML = icon('external', 'icon--24');
-      $('#consent .icon-btn').innerHTML = icon('x', 'icon--24');
-      ['ck1', 'ck2', 'ck3'].forEach(id => $('#' + id).innerHTML = icon('check', 'icon--14'));
-      $('#st-chip').innerHTML = icon('activity') + 'Berlangsung';
-      $('#vis-info').innerHTML = isMember ? icon('eye', 'icon--14') + ' Terlihat oleh peserta &amp; panitia kegiatan.' : icon('eye-off', 'icon--14') + ' Tampilan publik: nama peserta disamarkan.';
-
-      if (!isMember) {
-        const g = $('#guest-note'); g.hidden = false;
-        g.innerHTML = icon('lock') + '<div><b>Masuk untuk detail penuh</b>Nama peserta, kecepatan, dan fitur berbagi lokasi hanya untuk member. <a href="masuk.html?next=tracking.html">Masuk sekarang</a></div>';
-      }
-
-      const shareBtn = $('#b-share'), sosBtn = $('#b-sos');
-      const setShare = (on) => {
-        shareBtn.innerHTML = on ? icon('x-circle', 'icon--16') + 'Berhenti Berbagi Lokasi' : icon('navigation', 'icon--16') + 'Mulai Berbagi Lokasi';
-        shareBtn.className = on ? 'btn btn--block btn--secondary' : 'btn btn--block';
-        sosBtn.hidden = !on; sosBtn.setAttribute('aria-pressed', 'false'); sosBtn.innerHTML = icon('sos', 'icon--16') + 'Kirim SOS';
-        sosBtn.dataset.on = '';
-        $('#b-me').style.opacity = on ? 1 : .5;
-      };
-      setShare(false);
-
-      shareBtn.addEventListener('click', async () => {
-        if (!isMember) { location.href = 'masuk.html?next=tracking.html'; return; }
-        if (T.st.sharing) {
-          const ok = await confirmDialog({ title: 'Berhenti berbagi lokasi?', body: 'Posisi Anda tidak lagi tampil di peta peserta.', confirmText: 'Ya, berhenti', cancelText: 'Tetap Berbagi' });
-          if (ok) { T.stopSharing(); setShare(false); toast({ type: 'info', msg: 'Berbagi lokasi dihentikan.' }); }
-        } else openDialog('#consent');
-      });
-      $('#consent-ok').addEventListener('click', () => { closeDialog('#consent'); T.startSharing(); setShare(true); toast({ type: 'success', title: 'Lokasi dibagikan', msg: 'Posisi Anda kini terlihat oleh peserta & panitia.' }); });
-
-      sosBtn.addEventListener('click', async () => {
-        if (T.st.sos) {
-          const ok = await confirmDialog({ title: 'Batalkan SOS?', body: 'Panitia akan diberi tahu bahwa Anda sudah aman.', confirmText: 'Saya Aman', cancelText: 'Tetap SOS' });
-          if (ok) { T.cancelSos(); sosBtn.innerHTML = icon('sos', 'icon--16') + 'Kirim SOS'; toast({ type: 'success', msg: 'SOS dibatalkan. Syukurlah Anda aman.' }); }
-          return;
-        }
-        const ok = await confirmDialog({ title: 'Kirim sinyal SOS?', body: 'Lokasi Anda akan dikirim ke panitia dan road captain sebagai keadaan darurat. Untuk darurat medis, hubungi <b>112</b>.', confirmText: 'Kirim SOS', danger: true });
-        if (ok) { T.triggerSos(); sosBtn.innerHTML = icon('check-circle', 'icon--16') + 'SOS Terkirim — Ketuk untuk Batalkan'; toast({ type: 'warning', title: 'SOS terkirim', msg: 'Panitia menerima lokasi Anda. Tetap di tempat yang aman.', timeout: 8000 }); }
-      });
-
-      $('#interval').addEventListener('change', (e) => { T.setInterval(+e.target.value); toast({ type: 'info', msg: +e.target.value > 2000 ? 'Mode hemat data aktif. Posisi diperbarui lebih jarang.' : 'Mode normal aktif.' }); });
-      $('#b-layer').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); e.currentTarget.setAttribute('aria-label', on ? 'Kembali ke tampilan peta jalan' : 'Ganti tampilan satelit'); T.setLayer(on ? 'sat' : 'road'); });
-      $('#b-fit').addEventListener('click', () => T.fitAll());
-      $('#b-me').addEventListener('click', () => { if (T.st.sharing) T.select('me'); else toast({ type: 'info', msg: 'Aktifkan berbagi lokasi untuk melihat posisi Anda.' }); });
-      $('#b-full').addEventListener('click', () => { const el = document.querySelector('.trk__map'); if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen(); });
-
-      // bottom-sheet (mobile)
-      const panel = $('#panel'), grab = $('#grab');
-      grab.addEventListener('click', () => { const o = panel.classList.toggle('is-open'); grab.setAttribute('aria-expanded', o); });
-      $('#list').addEventListener('click', () => { if (matchMedia('(max-width:767px)').matches) { panel.classList.remove('is-open'); grab.setAttribute('aria-expanded', 'false'); } });
-
-      T.start();
-      document.addEventListener('visibilitychange', () => { if (document.hidden) T.stop(); else T.start(); });
-    })();
-  </script>
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script>
 </body>
-</html>
+
