@@ -30,7 +30,7 @@
     </div>
   </main>
   <div id="site-footer"></div>
-  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/otp.js"></script>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/otp.js?v=otp3"></script>
   <script>
     (function () {
       const { D, icon, esc, fmt, Store, Auth, toast, OtpFlow, Audit, confirmDialog } = DOCI;
@@ -80,6 +80,7 @@
 
       /* Step 1 — OTP */
       function s0() {
+        form.onsubmit = (e) => e.preventDefault();
         if (draft.phone) {
           form.innerHTML = `<div class="banner banner--success">${icon('check-circle')}<div><b>Nomor terverifikasi</b><span class="mono">${fmt.phone(draft.phone)}</span></div></div>
             <div class="form-actions"><button type="button" class="btn btn--ghost" id="chg">Ganti nomor</button><button class="btn" type="button" id="go">Lanjutkan</button></div>`;
@@ -87,7 +88,7 @@
           form.querySelector('#chg').onclick = () => { draft.phone = null; save(); render(); };
           return;
         }
-        form.innerHTML = '<div id="otp-root"></div>';
+        form.innerHTML = `<div class="banner banner--demo demo-hint small" style="margin-bottom:16px">${icon('shield')}<div><b>Petunjuk Pendaftaran Demo</b> Masukkan nomor ponsel baru (mis. <code>081234567890</code>). Gunakan kode OTP <code>123456</code>. (Nomor demo <code>0812-0000-0001..3</code> sudah terdaftar).</div></div><div id="otp-root"></div>`;
         OtpFlow({ root: form.querySelector('#otp-root'), mode: 'signup', cta: 'Kirim OTP', onVerified(p) { draft.phone = p; draft.step = 1; save(); render(); } });
       }
       /* Step 2 — pribadi */
