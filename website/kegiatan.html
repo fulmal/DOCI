@@ -57,7 +57,7 @@
       document.getElementById('v-month').innerHTML = icon('grid', 'icon--16') + 'Bulan'; document.getElementById('v-agenda').innerHTML = icon('list', 'icon--16') + 'Agenda';
       document.getElementById('ic-cal').innerHTML = icon('calendar');
       const qs = new URLSearchParams(location.search);
-      let cat = qs.get('cat') || 'all', chapter = qs.get('chapter') || 'all', view = matchMedia('(min-width:768px)').matches ? 'month' : 'agenda';
+      let cat = qs.get('cat') || 'all', chapter = qs.get('chapter') || 'all', view = qs.get('view') || (qs.has('cat') && qs.get('cat') !== 'all' ? 'agenda' : (matchMedia('(min-width:768px)').matches ? 'month' : 'agenda'));
       const now = new Date(); let cur = new Date(now.getFullYear(), now.getMonth(), 1);
 
       const catEl = document.getElementById('cat-filters');
@@ -101,7 +101,7 @@
         document.getElementById('empty-reset')?.addEventListener('click', reset);
       }
       const reset = () => { cat = 'all'; chapter = 'all'; document.getElementById('chapter-filter').value = 'all'; render(); };
-      catEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { cat = b.dataset.c; render(); } });
+      catEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { cat = b.dataset.c; if (cat !== 'all') view = 'agenda'; render(); } });
       document.getElementById('chapter-filter').addEventListener('change', (e) => { chapter = e.target.value; render(); });
       rs.addEventListener('click', reset);
       document.getElementById('prev').onclick = () => { cur.setMonth(cur.getMonth() - 1); render(); };
@@ -123,6 +123,9 @@
         const m = ev.target.closest('.cal__more'); if (m) { view = 'agenda'; render(); document.getElementById('cal-agenda').scrollIntoView({ behavior: 'smooth' }); }
       });
       render();
+      if (qs.has('cat') && qs.get('cat') !== 'all') {
+        setTimeout(() => { const tb = document.querySelector('.cal-toolbar'); if (tb) tb.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+      }
     })();
   </script>
 </body>

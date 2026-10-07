@@ -254,7 +254,7 @@
   const NAV = [
     { label: 'Tentang', key: 'tentang', items: [['Sejarah', 'tentang.html#sejarah', 'history'], ['Profil, Visi & Misi', 'tentang.html#profil', 'flag'], ['Struktur Organisasi', 'tentang.html#struktur', 'users'], ['AD/ART & Dokumen', 'dokumen.html', 'file']] },
     { label: 'Keanggotaan', key: 'membership', items: [['Join Us', 'membership.html', 'user'], ['Benefit Member', 'membership.html#benefit', 'star'], ['Direktori Member', 'membership.html#direktori', 'users'], ['Area Member', 'akun.html', 'card']] },
-    { label: 'Kegiatan', key: 'kegiatan', items: [['Kalender Kegiatan', 'kegiatan.html', 'calendar'], ['Touring', 'kegiatan.html?cat=touring', 'navigation'], ['Riding & Track Day', 'kegiatan.html?cat=riding', 'bike'], ['Sosial', 'kegiatan.html?cat=sosial', 'heart']] },
+    { label: 'Kegiatan', key: 'kegiatan', items: [['Kalender Kegiatan', 'kegiatan.html', 'calendar'], ['Touring', 'kegiatan.html?cat=touring&view=agenda', 'navigation'], ['Riding & Track Day', 'kegiatan.html?cat=riding&view=agenda', 'bike'], ['Sosial', 'kegiatan.html?cat=sosial&view=agenda', 'heart']] },
     { label: 'Berita', key: 'berita', href: 'berita.html' },
     { label: 'Galeri', key: 'galeri', href: 'galeri.html' },
     { label: 'Chapter', key: 'chapter', href: 'chapter.html' },
