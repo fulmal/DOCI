@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/doci.css">
-  <link rel="stylesheet" href="assets/css/pages.css">
+  <link rel="stylesheet" href="assets/css/pages.css?v=ig2">
   <link rel="preload" as="image" href="assets/img/hero.jpg" fetchpriority="high">
 </head>
 <body data-page="home">
@@ -79,8 +79,10 @@
           <span class="overline" style="color:#ff6b79">Media Sosial</span>
           <h2 id="h-ig" style="font-size:var(--text-display);font-weight:800;line-height:1.1">Ikuti Perjalanan Kami di Instagram</h2>
           <p class="lead" style="color:#c9ccd3">Momen touring, track day, dan kopdar terbaru dari seluruh chapter — langsung dari akun resmi DOCI.</p>
-          <a class="ig__handle" id="ig-handle" target="_blank" rel="noopener noreferrer"></a>
-          <a class="btn btn--lg btn--outline-light" id="ig-follow" target="_blank" rel="noopener noreferrer"></a>
+          <div class="ig__actions">
+            <a class="ig__handle" id="ig-handle" target="_blank" rel="noopener noreferrer"></a>
+            <a class="btn btn--lg btn--outline-light" id="ig-follow" target="_blank" rel="noopener noreferrer"></a>
+          </div>
         </div>
         <div class="ig__grid reveal" id="ig-grid"></div>
       </div>
@@ -114,10 +116,10 @@
       document.getElementById('join-cta').innerHTML = joinCta();
       DOCI.initGallery('#home-gallery', D.GALLERY.slice(0, 8), '#lightbox');
       const ig = DOCI.SOCIAL.instagram;
-      const igPosts = [['hero.jpg', 'Formasi rider Ducati di jalan pegunungan saat senja'], ['touring.jpg', 'Rombongan touring berhenti di viewpoint'], ['trackday.jpg', 'Suasana track day di sirkuit'], ['social.jpg', 'Kegiatan bakti sosial komunitas'], ['coast.jpg', 'Sunday ride menyusuri pesisir'], ['detail.jpg', 'Detail motor Ducati']];
+      const igPosts = [['hero.jpg', 'Formasi rider Ducati di jalan pegunungan saat senja'], ['touring.jpg', 'Rombongan touring berhenti di viewpoint'], ['trackday.jpg', 'Suasana track day di sirkuit'], ['social.jpg', 'Kegiatan bakti sosial komunitas'], ['coast.jpg', 'Sunday ride menyusuri pesisir']];
       document.getElementById('ig-handle').href = ig.url; document.getElementById('ig-handle').innerHTML = icon('instagram', 'icon--24') + '<span>@' + ig.handle + '</span>';
       const fb = document.getElementById('ig-follow'); fb.href = ig.url; fb.textContent = 'Ikuti di Instagram';
-      document.getElementById('ig-grid').innerHTML = igPosts.map(p => `<a class="ig__tile" href="${ig.url}" target="_blank" rel="noopener noreferrer" aria-label="Buka Instagram @${ig.handle}: ${p[1]}"><img src="assets/img/${p[0]}" alt="${p[1]}" loading="lazy" width="400" height="400"><span class="ig__badge" aria-hidden="true">${icon('instagram', 'icon--24')}</span></a>`).join('');
+      document.getElementById('ig-grid').innerHTML = igPosts.map((p, i) => `<a class="ig__tile${i === 0 ? ' ig__tile--feat' : ''}" href="${ig.url}" target="_blank" rel="noopener noreferrer" aria-label="Buka Instagram @${ig.handle}: ${p[1]}"><img src="assets/img/${p[0]}" alt="${p[1]}" loading="lazy" width="800" height="800"><span class="ig__ico" aria-hidden="true">${icon('instagram', 'icon--16')}</span>${i === 0 ? `<span class="ig__tag" aria-hidden="true">Terbaru</span><span class="ig__cap" aria-hidden="true">${p[1]}</span>` : ''}<span class="ig__badge" aria-hidden="true">${icon('instagram', 'icon--24')}</span></a>`).join('');
     })();
   </script>
 </body>
