@@ -453,8 +453,9 @@
   /* ---------- Membership card (digital) ---------- */
   function cardHTML({ name, id, chapter, until, photo }) {
     const photoUrl = photo || 'assets/img/member-photo.jpg';
-    return `<div class="mcard" role="img" aria-label="Kartu member ${esc(name)}, ${id}"><div class="mcard__top">${logo(true, '#')}<span class="mcard__tag">Member</span></div>
-      <div class="mcard__mid"><div class="mcard__info"><div class="mcard__photo"><img src="${photoUrl}" alt="Foto ${esc(name)}"></div><div class="mcard__name">${esc(name)}</div><div class="mcard__id">${id}</div><div class="mcard__meta" style="margin-top:8px"><div><span>Chapter</span><b>${esc(chapter)}</b></div><div><span>Berlaku s.d.</span><b>${fmt.dateShort(until)}</b></div></div></div><div class="mcard__qr">${qrSvg(id, 64)}</div></div></div>`;
+    return `<div class="mcard" role="img" aria-label="Kartu member ${esc(name)}, ${id}"><div class="mcard__left"><div class="mcard__top">${logo(true, '#')}<span class="mcard__tag">Member</span></div>
+      <div class="mcard__who"><div class="mcard__photo"><img src="${photoUrl}" alt="Foto ${esc(name)}"></div><div class="mcard__name">${esc(name)}</div><div class="mcard__id">${id}</div></div></div>
+      <div class="mcard__right"><div class="mcard__qr">${qrSvg(id, 64)}</div><div class="mcard__meta"><div><span>Chapter</span><b>${esc(chapter)}</b></div><div><span>Berlaku s.d.</span><b>${fmt.dateShort(until)}</b></div></div></div></div>`;
   }
 
   /* ---------- Boot ---------- */
