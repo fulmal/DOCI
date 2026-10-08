@@ -100,7 +100,7 @@
         if (inv.type === 'membership') {
           const p = inv.profile || {}; const until = new Date(inv.activeUntil);
           return `<div class="banner banner--success"><span>${icon('check-circle', 'icon--24')}</span><div><b>Pembayaran berhasil! Membership Anda aktif sampai ${fmt.dateShort(until)}.</b>Member ID <span class="mono">${inv.memberId}</span> sudah terbit. Konfirmasi dikirim via WhatsApp & email.</div></div>
-          <div class="card"><h2 style="font-size:18px">Kartu Member Digital</h2><div style="display:flex;justify-content:center;padding:8px 0">${cardHTML({ name: p.fullName || 'Member DOCI', id: inv.memberId, chapter: (D.CHAPTERS.find(c => c.id === p.chapter) || {}).name || 'DOCI', until })}</div>
+          <div class="card"><h2 style="font-size:18px">Kartu Member Digital</h2><div style="display:flex;justify-content:center;padding:8px 0">${cardHTML({ name: p.fullName || 'Member DOCI', id: inv.memberId, chapter: (D.CHAPTERS.find(c => c.id === p.chapter) || {}).name || 'DOCI', until, photo: 'assets/img/member-photo.jpg' })}</div>
           <div class="btn-group" style="margin-top:16px"><a class="btn btn--lg" href="akun.html">Masuk ke Area Member</a><a class="btn btn--secondary" href="invoice.html?inv=${encodeURIComponent(inv.id)}" target="_blank">Unduh Invoice</a></div></div>`;
         }
         return `<div class="banner banner--success"><span>${icon('check-circle', 'icon--24')}</span><div><b>Terdaftar & lunas!</b>Pendaftaran Anda untuk <b>${esc(inv.title)}</b> sudah terkonfirmasi. QR check-in terbit di bawah.</div></div>

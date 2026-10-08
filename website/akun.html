@@ -140,7 +140,7 @@
         const act = memberActive();
         $('#v-kartu').innerHTML = `<div class="dash-grid">
           <section class="card span-5"><h2 class="card-title">Kartu Member Digital</h2>
-            <div style="display:flex;justify-content:center;padding:8px 0 16px">${cardHTML({ name: u.name, id: u.memberId || 'DOCI-00-00000', chapter: chapterName(u.chapter), until: u.activeUntil })}</div>
+            <div style="display:flex;justify-content:center;padding:8px 0 16px">${cardHTML({ name: u.name, id: u.memberId || 'DOCI-00-00000', chapter: chapterName(u.chapter), until: u.activeUntil, photo: u.photo || 'assets/img/member-photo.jpg' })}</div>
             ${act ? '' : `<div class="banner banner--danger small">${icon('x-circle')}<div>Kartu tidak berlaku karena membership kedaluwarsa.</div></div>`}
             <div class="row" style="gap:8px;margin-top:var(--space-3);flex-wrap:wrap"><button class="btn btn--secondary btn--sm" id="print">${icon('download', 'icon--16')}Cetak / Simpan PDF</button></div></section>
           <section class="card span-7"><div class="row row--between"><h2 class="card-title" style="margin:0">Profil</h2><button class="btn btn--ghost btn--sm" id="edit">${icon('pencil', 'icon--16')}Ubah</button></div>
@@ -148,7 +148,7 @@
             <h3 style="font-size:16px;margin:var(--space-5) 0 0">Pengaturan</h3>
             ${[['notif', 'Notifikasi kegiatan & pembayaran', 'Pengingat via WhatsApp dan email.'], ['loc', 'Izinkan berbagi lokasi saat touring', 'Hanya aktif saat Anda memulai live tracking.'], ['vis', 'Tampilkan profil di direktori member', 'Hanya nama, chapter, dan motor. Nomor telepon tidak pernah tampil.']].map(s => `<div class="setting-row"><div><b id="l-${s[0]}">${s[1]}</b><span class="sub">${s[2]}</span></div><label class="switch"><input type="checkbox" data-pref="${s[0]}" aria-labelledby="l-${s[0]}" ${prefs[s[0]] ? 'checked' : ''}><span></span></label></div>`).join('')}
             <div style="margin-top:var(--space-4)"><button class="btn btn--ghost btn--sm" id="out" style="color:var(--color-danger)">${icon('logout', 'icon--16')}Keluar</button></div></section></div>`;
-        $('#print').onclick = () => { $('#print-zone').innerHTML = cardHTML({ name: u.name, id: u.memberId || '', chapter: chapterName(u.chapter), until: u.activeUntil }); document.body.classList.add('print-card'); window.print(); setTimeout(() => document.body.classList.remove('print-card'), 500); };
+        $('#print').onclick = () => { $('#print-zone').innerHTML = cardHTML({ name: u.name, id: u.memberId || '', chapter: chapterName(u.chapter), until: u.activeUntil, photo: u.photo || 'assets/img/member-photo.jpg' }); document.body.classList.add('print-card'); window.print(); setTimeout(() => document.body.classList.remove('print-card'), 500); };
         $('#out').onclick = Auth.logout;
         $('#edit').onclick = () => {
           $('#e-name').value = u.name; $('#e-email').value = u.email || ''; $('#e-city').value = u.city || ''; $('#e-bike').value = u.bike || ''; $('#e-bike').closest('.field').hidden = !!(u.vehicles && u.vehicles.length);
