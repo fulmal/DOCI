@@ -97,6 +97,11 @@
           `<div class="form-row form-row--2">${F('birth', 'Tanggal lahir', { type: 'date', value: d().birth || '', ac: 'bday' })}${F('city', 'Kota domisili', { value: d().city || '', ph: 'mis. Jakarta Selatan', ac: 'address-level2' })}</div>` +
           `<div class="field"><label for="bloodType">Golongan darah<span class="req" aria-hidden="true">*</span></label><select class="select" id="bloodType" name="bloodType" required aria-describedby="bloodType-e"><option value="">Pilih…</option>${['A', 'B', 'AB', 'O'].map(v => `<option value="${v}" ${d().bloodType === v ? 'selected' : ''}>${v}</option>`).join('')}</select><span class="error-text" id="bloodType-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>` +
           F('email', 'Email', { type: 'email', req: false, value: d().email || '', ph: 'nama@email.com', ac: 'email', help: 'Untuk invoice & pemulihan akun. Direkomendasikan.' }) +
+          `<h3 style="margin:24px 0 16px;font-size:17px;border-top:1px solid var(--color-line);padding-top:16px">Kontak Darurat</h3>` +
+          F('emergName', 'Nama kontak', { value: d().emergName || '', ph: 'mis. Dinda' }) +
+          `<div class="form-row form-row--2"><div class="field"><label for="emergRel">Status hubungan<span class="req" aria-hidden="true">*</span></label><select class="select" id="emergRel" name="emergRel" required aria-describedby="emergRel-e"><option value="">Pilih…</option>${['Istri', 'Suami', 'Orang Tua', 'Saudara', 'Anak', 'Teman', 'Lainnya'].map(v => `<option value="${v}" ${d().emergRel === v ? 'selected' : ''}>${v}</option>`).join('')}</select><span class="error-text" id="emergRel-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>` +
+          F('emergPhone', 'Nomor telepon', { type: 'tel', value: d().emergPhone || '', ph: 'mis. 08123456789' }) + `</div>` +
+          `<h3 style="margin:24px 0 16px;font-size:17px;border-top:1px solid var(--color-line);padding-top:16px">Lainnya</h3>` +
           `<div class="field"><label for="photo">Foto profil <span class="muted small">(opsional)</span></label><input class="input" type="file" id="photo" accept="image/png,image/jpeg,image/webp"><span class="help">JPG/PNG/WebP, maks 5 MB.</span></div>` + nav();
         wireNav(() => {
           let ok = true;
@@ -105,6 +110,9 @@
           if (!b.value) { fieldErr(b, 'Tanggal lahir wajib diisi.'); ok = false; } else if (age < 17) { fieldErr(b, 'Usia minimal 17 tahun untuk bergabung.'); ok = false; }
           ok = req('city', 'Kota domisili wajib diisi.') && ok;
           ok = req('bloodType', 'Golongan darah wajib diisi.') && ok;
+          ok = req('emergName', 'Nama kontak darurat wajib diisi.') && ok;
+          ok = req('emergRel', 'Pilih status hubungan.') && ok;
+          ok = req('emergPhone', 'Nomor telepon kontak darurat wajib diisi.') && ok;
           const em = form.querySelector('#email'); if (em.value && !/^\S+@\S+\.\S+$/.test(em.value)) { fieldErr(em, 'Format email belum sesuai, mis. nama@email.com.'); ok = false; }
           return ok;
         });
@@ -294,7 +302,7 @@
       /* Step 6 — ringkasan */
       function s5() {
         const c = D.CHAPTERS.find(x => x.id === d().chapter);
-        form.innerHTML = `<dl class="kv"><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Gol. Darah</dt><dd>${esc(d().bloodType)}</dd></div><div><dt>Kendaraan (${vehicles().length})</dt><dd>${vehicles().map(v => `<div class="sum-veh">${esc(bikeLabel(v))}<span class="small muted">Plat: ${esc(v.plate)} · Rangka: ${esc(v.chassis || '—')} · Mesin: ${esc(v.engine || '—')} · STNK ${v.stnk ? 'terunggah' : 'belum ada'}</span></div>`).join('')}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah · ${vehicles().filter(v => v.stnk).length} STNK menunggu verifikasi admin</dd></div></dl>
+        form.innerHTML = `<dl class="kv"><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Gol. Darah</dt><dd>${esc(d().bloodType)}</dd></div><div><dt>Kontak Darurat</dt><dd>${esc(d().emergName)} (${esc(d().emergRel)}) - ${esc(d().emergPhone)}</dd></div><div><dt>Kendaraan (${vehicles().length})</dt><dd>${vehicles().map(v => `<div class="sum-veh">${esc(bikeLabel(v))}<span class="small muted">Plat: ${esc(v.plate)} · Rangka: ${esc(v.chassis || '—')} · Mesin: ${esc(v.engine || '—')} · STNK ${v.stnk ? 'terunggah' : 'belum ada'}</span></div>`).join('')}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah · ${vehicles().filter(v => v.stnk).length} STNK menunggu verifikasi admin</dd></div></dl>
         <h3 style="margin:24px 0 8px;font-size:17px">Rincian Biaya</h3>
         <dl class="kv kv--total"><div><dt>Biaya join (pendaftaran + iuran 12 bulan pertama)</dt><dd class="num">Rp 1.500.000</dd></div><div><dt>Total</dt><dd class="num">Rp 1.500.000</dd></div></dl>
         <p class="help" style="margin-top:8px">Biaya layanan metode pembayaran (jika ada) ditampilkan di langkah berikutnya. Pembayaran otomatis — tidak perlu unggah bukti transfer.</p>

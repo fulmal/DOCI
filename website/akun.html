@@ -54,7 +54,13 @@
           </div>
           <div class="field"><label class="field-label" for="e-chapter">Chapter</label><select class="select" id="e-chapter"></select></div>
           <div class="field"><label class="field-label" for="e-bike">Motor</label><input class="input" id="e-bike"></div>
-          <p class="help" style="margin:0">Nomor telepon tidak bisa diubah di sini karena dipakai untuk login. Hubungi admin bila perlu mengganti.</p>
+          <h3 style="margin:8px 0 0;font-size:15px;border-top:1px solid var(--color-line);padding-top:16px">Kontak Darurat</h3>
+          <div class="field"><label class="field-label" for="e-emergName">Nama kontak</label><input class="input" id="e-emergName"></div>
+          <div class="form-row form-row--2">
+            <div class="field"><label class="field-label" for="e-emergRel">Status hubungan</label><select class="select" id="e-emergRel"><option value="">Pilih…</option><option value="Istri">Istri</option><option value="Suami">Suami</option><option value="Orang Tua">Orang Tua</option><option value="Saudara">Saudara</option><option value="Anak">Anak</option><option value="Teman">Teman</option><option value="Lainnya">Lainnya</option></select></div>
+            <div class="field"><label class="field-label" for="e-emergPhone">Nomor telepon</label><input class="input" id="e-emergPhone" type="tel"></div>
+          </div>
+          <p class="help" style="margin:0">Nomor telepon utama tidak bisa diubah di sini karena dipakai untuk login. Hubungi admin bila perlu mengganti.</p>
         </div>
         <div class="modal__foot"><button type="button" class="btn btn--ghost" data-close>Batal</button><button class="btn" type="submit">Simpan</button></div>
       </form>
@@ -145,14 +151,14 @@
             ${act ? '' : `<div class="banner banner--danger small">${icon('x-circle')}<div>Kartu tidak berlaku karena membership kedaluwarsa.</div></div>`}
             <div class="row" style="gap:8px;margin-top:var(--space-3);flex-wrap:wrap"><button class="btn btn--secondary btn--sm" id="print">${icon('download', 'icon--16')}Cetak / Simpan PDF</button></div></section>
           <section class="card span-7"><div class="row row--between"><h2 class="card-title" style="margin:0">Profil</h2><button class="btn btn--ghost btn--sm" id="edit">${icon('pencil', 'icon--16')}Ubah</button></div>
-            <dl class="kv" style="margin-top:var(--space-3)"><div><dt>Nama</dt><dd>${esc(u.name)}</dd></div><div><dt>Telepon</dt><dd>${fmt.phone(u.phone)}</dd></div><div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Kota</dt><dd>${esc(u.city || '—')}</dd></div><div><dt>Gol. Darah</dt><dd>${esc(u.bloodType || '—')}</dd></div><div><dt>${u.vehicles && u.vehicles.length > 1 ? 'Motor (' + u.vehicles.length + ')' : 'Motor'}</dt><dd>${u.vehicles && u.vehicles.length ? u.vehicles.map(v => `<div class="sum-veh">Ducati ${esc(v.model)}${v.year ? ' (' + esc(v.year) + (v.color ? ', ' + esc(v.color) : '') + ')' : ''}<span class="small muted">Plat: ${esc(v.plate || '—')}${v.chassis ? ' · Rangka: ' + esc(v.chassis) : ''}${v.engine ? ' · Mesin: ' + esc(v.engine) : ''} · STNK ${v.stnk ? ({ terverifikasi: 'terverifikasi', ditolak: 'ditolak — unggah ulang', menunggu: 'menunggu verifikasi' }[v.stnk.status] || 'menunggu verifikasi') : 'belum diunggah'}</span></div>`).join('') : esc(u.bike || '—')}</dd></div></dl>
+            <dl class="kv" style="margin-top:var(--space-3)"><div><dt>Nama</dt><dd>${esc(u.name)}</dd></div><div><dt>Telepon</dt><dd>${fmt.phone(u.phone)}</dd></div><div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Kota</dt><dd>${esc(u.city || '—')}</dd></div><div><dt>Gol. Darah</dt><dd>${esc(u.bloodType || '—')}</dd></div><div><dt>Kontak Darurat</dt><dd>${u.emergName ? esc(u.emergName) + ' (' + esc(u.emergRel || '-') + ') - ' + esc(u.emergPhone || '-') : '—'}</dd></div><div><dt>${u.vehicles && u.vehicles.length > 1 ? 'Motor (' + u.vehicles.length + ')' : 'Motor'}</dt><dd>${u.vehicles && u.vehicles.length ? u.vehicles.map(v => `<div class="sum-veh">Ducati ${esc(v.model)}${v.year ? ' (' + esc(v.year) + (v.color ? ', ' + esc(v.color) : '') + ')' : ''}<span class="small muted">Plat: ${esc(v.plate || '—')}${v.chassis ? ' · Rangka: ' + esc(v.chassis) : ''}${v.engine ? ' · Mesin: ' + esc(v.engine) : ''} · STNK ${v.stnk ? ({ terverifikasi: 'terverifikasi', ditolak: 'ditolak — unggah ulang', menunggu: 'menunggu verifikasi' }[v.stnk.status] || 'menunggu verifikasi') : 'belum diunggah'}</span></div>`).join('') : esc(u.bike || '—')}</dd></div></dl>
             <h3 style="font-size:16px;margin:var(--space-5) 0 0">Pengaturan</h3>
             ${[['notif', 'Notifikasi kegiatan & pembayaran', 'Pengingat via WhatsApp dan email.'], ['vis', 'Tampilkan profil di direktori member', 'Hanya nama, chapter, dan motor. Nomor telepon tidak pernah tampil.']].map(s => `<div class="setting-row"><div><b id="l-${s[0]}">${s[1]}</b><span class="sub">${s[2]}</span></div><label class="switch"><input type="checkbox" data-pref="${s[0]}" aria-labelledby="l-${s[0]}" ${prefs[s[0]] ? 'checked' : ''}><span></span></label></div>`).join('')}
             <div style="margin-top:var(--space-4)"><button class="btn btn--ghost btn--sm" id="out" style="color:var(--color-danger)">${icon('logout', 'icon--16')}Keluar</button></div></section></div>`;
         $('#print').onclick = () => { $('#print-zone').innerHTML = cardHTML({ name: u.name, id: u.memberId || '', chapter: chapterName(u.chapter), until: u.activeUntil, photo: u.photo || 'assets/img/member-photo.jpg' }); document.body.classList.add('print-card'); window.print(); setTimeout(() => document.body.classList.remove('print-card'), 500); };
         $('#out').onclick = Auth.logout;
         $('#edit').onclick = () => {
-          $('#e-name').value = u.name; $('#e-email').value = u.email || ''; $('#e-city').value = u.city || ''; $('#e-blood').value = u.bloodType || ''; $('#e-bike').value = u.bike || ''; $('#e-bike').closest('.field').hidden = !!(u.vehicles && u.vehicles.length);
+          $('#e-name').value = u.name; $('#e-email').value = u.email || ''; $('#e-city').value = u.city || ''; $('#e-blood').value = u.bloodType || ''; $('#e-emergName').value = u.emergName || ''; $('#e-emergRel').value = u.emergRel || ''; $('#e-emergPhone').value = u.emergPhone || ''; $('#e-bike').value = u.bike || ''; $('#e-bike').closest('.field').hidden = !!(u.vehicles && u.vehicles.length);
           $('#e-chapter').innerHTML = D.CHAPTERS.map(c => `<option value="${c.id}" ${c.id === u.chapter ? 'selected' : ''}>${c.name}</option>`).join('');
           openDialog('#edit-dlg');
         };
@@ -164,9 +170,9 @@
         e.preventDefault();
         const name = $('#e-name').value.trim(); if (!name) { toast({ type: 'error', title: 'Nama wajib diisi', msg: 'Masukkan nama lengkap Anda.' }); return; }
         const before = { name: u.name, chapter: u.chapter };
-        u = Object.assign({}, u, { name, email: $('#e-email').value.trim(), city: $('#e-city').value.trim(), bloodType: $('#e-blood').value, bike: (u.vehicles && u.vehicles.length) ? u.bike : $('#e-bike').value.trim(), chapter: $('#e-chapter').value });
+        u = Object.assign({}, u, { name, email: $('#e-email').value.trim(), city: $('#e-city').value.trim(), bloodType: $('#e-blood').value, emergName: $('#e-emergName').value.trim(), emergRel: $('#e-emergRel').value, emergPhone: $('#e-emergPhone').value.trim(), bike: (u.vehicles && u.vehicles.length) ? u.bike : $('#e-bike').value.trim(), chapter: $('#e-chapter').value });
         Store.set('session', u);
-        const users = Store.get('users', {}); if (users[u.phone]) { users[u.phone] = Object.assign({}, users[u.phone], { name: u.name, email: u.email, city: u.city, bloodType: u.bloodType, bike: u.bike, chapter: u.chapter }); Store.set('users', users); }
+        const users = Store.get('users', {}); if (users[u.phone]) { users[u.phone] = Object.assign({}, users[u.phone], { name: u.name, email: u.email, city: u.city, bloodType: u.bloodType, emergName: u.emergName, emergRel: u.emergRel, emergPhone: u.emergPhone, bike: u.bike, chapter: u.chapter }); Store.set('users', users); }
         Audit.log('ubah profil', u.memberId || u.phone, before, { name: u.name, chapter: u.chapter });
         closeDialog('#edit-dlg'); toast({ type: 'success', title: 'Profil diperbarui', msg: 'Perubahan Anda sudah tersimpan.' }); chrome(); route();
       });
