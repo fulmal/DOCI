@@ -136,7 +136,7 @@
       }
 
       function kartu() {
-        const prefs = Object.assign({ notif: true, loc: true, vis: false }, Store.get('prefs', {}));
+        const prefs = Object.assign({ notif: true, vis: false }, Store.get('prefs', {}));
         const act = memberActive();
         $('#v-kartu').innerHTML = `<div class="dash-grid">
           <section class="card span-5"><h2 class="card-title">Kartu Member Digital</h2>
@@ -146,7 +146,7 @@
           <section class="card span-7"><div class="row row--between"><h2 class="card-title" style="margin:0">Profil</h2><button class="btn btn--ghost btn--sm" id="edit">${icon('pencil', 'icon--16')}Ubah</button></div>
             <dl class="kv" style="margin-top:var(--space-3)"><div><dt>Nama</dt><dd>${esc(u.name)}</dd></div><div><dt>Telepon</dt><dd>${fmt.phone(u.phone)}</dd></div><div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Kota</dt><dd>${esc(u.city || '—')}</dd></div><div><dt>${u.vehicles && u.vehicles.length > 1 ? 'Motor (' + u.vehicles.length + ')' : 'Motor'}</dt><dd>${u.vehicles && u.vehicles.length ? u.vehicles.map(v => `<div class="sum-veh">Ducati ${esc(v.model)}${v.year ? ' (' + esc(v.year) + (v.color ? ', ' + esc(v.color) : '') + ')' : ''}<span class="small muted">Plat: ${esc(v.plate || '—')}${v.chassis ? ' · Rangka: ' + esc(v.chassis) : ''}${v.engine ? ' · Mesin: ' + esc(v.engine) : ''} · STNK ${v.stnk ? ({ terverifikasi: 'terverifikasi', ditolak: 'ditolak — unggah ulang', menunggu: 'menunggu verifikasi' }[v.stnk.status] || 'menunggu verifikasi') : 'belum diunggah'}</span></div>`).join('') : esc(u.bike || '—')}</dd></div></dl>
             <h3 style="font-size:16px;margin:var(--space-5) 0 0">Pengaturan</h3>
-            ${[['notif', 'Notifikasi kegiatan & pembayaran', 'Pengingat via WhatsApp dan email.'], ['loc', 'Izinkan berbagi lokasi saat touring', 'Hanya aktif saat Anda memulai live tracking.'], ['vis', 'Tampilkan profil di direktori member', 'Hanya nama, chapter, dan motor. Nomor telepon tidak pernah tampil.']].map(s => `<div class="setting-row"><div><b id="l-${s[0]}">${s[1]}</b><span class="sub">${s[2]}</span></div><label class="switch"><input type="checkbox" data-pref="${s[0]}" aria-labelledby="l-${s[0]}" ${prefs[s[0]] ? 'checked' : ''}><span></span></label></div>`).join('')}
+            ${[['notif', 'Notifikasi kegiatan & pembayaran', 'Pengingat via WhatsApp dan email.'], ['vis', 'Tampilkan profil di direktori member', 'Hanya nama, chapter, dan motor. Nomor telepon tidak pernah tampil.']].map(s => `<div class="setting-row"><div><b id="l-${s[0]}">${s[1]}</b><span class="sub">${s[2]}</span></div><label class="switch"><input type="checkbox" data-pref="${s[0]}" aria-labelledby="l-${s[0]}" ${prefs[s[0]] ? 'checked' : ''}><span></span></label></div>`).join('')}
             <div style="margin-top:var(--space-4)"><button class="btn btn--ghost btn--sm" id="out" style="color:var(--color-danger)">${icon('logout', 'icon--16')}Keluar</button></div></section></div>`;
         $('#print').onclick = () => { $('#print-zone').innerHTML = cardHTML({ name: u.name, id: u.memberId || '', chapter: chapterName(u.chapter), until: u.activeUntil, photo: u.photo || 'assets/img/member-photo.jpg' }); document.body.classList.add('print-card'); window.print(); setTimeout(() => document.body.classList.remove('print-card'), 500); };
         $('#out').onclick = Auth.logout;
@@ -155,7 +155,7 @@
           $('#e-chapter').innerHTML = D.CHAPTERS.map(c => `<option value="${c.id}" ${c.id === u.chapter ? 'selected' : ''}>${c.name}</option>`).join('');
           openDialog('#edit-dlg');
         };
-        $$('[data-pref]').forEach(i => i.onchange = () => { const p = Object.assign({ notif: true, loc: true, vis: false }, Store.get('prefs', {})); p[i.dataset.pref] = i.checked; Store.set('prefs', p); Audit.log('ubah pengaturan', i.dataset.pref, null, i.checked); toast({ type: 'success', msg: 'Pengaturan disimpan.' }); });
+        $$('[data-pref]').forEach(i => i.onchange = () => { const p = Object.assign({ notif: true, vis: false }, Store.get('prefs', {})); p[i.dataset.pref] = i.checked; Store.set('prefs', p); Audit.log('ubah pengaturan', i.dataset.pref, null, i.checked); toast({ type: 'success', msg: 'Pengaturan disimpan.' }); });
       }
 
       $('#edit-x').innerHTML = icon('x', 'icon--24');
