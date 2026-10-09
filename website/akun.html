@@ -66,7 +66,7 @@
       const { D, icon, esc, fmt, Store, Auth, Audit, toast, statusChip, eventCard, cardHTML, qrSvg, openDialog, closeDialog, Upload, $, $$ } = DOCI;
       let u = Auth.require(); if (!u) return;
       { const fresh = Store.get('users', {})[u.phone]; if (fresh && fresh.vehicles) u = Object.assign({}, u, { vehicles: fresh.vehicles }); }
-      const VIEWS = [['beranda', 'Beranda', 'home'], ['kegiatan', 'Kegiatan', 'calendar'], ['dokumentasi', 'Dokumentasi', 'image'], ['tracking', 'Tracking', 'pin'], ['kartu', 'Kartu', 'card']];
+      const VIEWS = [['beranda', 'Beranda', 'home'], ['kegiatan', 'Kegiatan', 'calendar'], ['dokumentasi', 'Dokumentasi', 'image'], ['kartu', 'Kartu', 'card']];
       const chapterName = (id) => (D.CHAPTERS.find(c => c.id === id) || {}).name || 'DOCI';
       const memberActive = () => u.status === 'aktif' && new Date(u.activeUntil) > new Date();
       const myInvoices = () => Store.get('invoices', []).filter(i => i.phone === u.phone);
@@ -79,7 +79,7 @@
         $('#hello').innerHTML = `<span class="avatar avatar--64">${fmt.initials(u.name)}</span><div class="grow"><h1>Halo, ${esc(u.name.split(' ')[0])}!</h1>
           <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px">${act ? statusChip('aktif') : statusChip('memberKedaluwarsa')}<span class="mono small muted">${esc(u.memberId || '—')}</span><span class="small muted">${esc(chapterName(u.chapter))}</span></div></div>
           ${u.role !== 'member' ? `<a class="btn btn--secondary btn--sm" href="admin.html">${icon('dashboard', 'icon--16')}Admin Panel</a>` : ''}`;
-        const link = (v) => v[0] === 'tracking' ? 'tracking.html' : '#' + v[0];
+        const link = (v) => '#' + v[0];
         $('#tabs').innerHTML = VIEWS.map(v => `<a class="tab" href="${link(v)}" data-v="${v[0]}">${v[1]}</a>`).join('');
         $('#bnav').innerHTML = VIEWS.map(v => `<a href="${link(v)}" data-v="${v[0]}">${icon(v[2], 'icon--24')}${v[1]}</a>`).join('');
       }
