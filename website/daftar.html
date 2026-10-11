@@ -101,14 +101,6 @@
       /* Step 1 — OTP */
       function s0() {
         form.onsubmit = (e) => e.preventDefault();
-        if (draft.phone) {
-          form.innerHTML = `<div class="banner banner--success">${icon('check-circle')}<div><b>Nomor terverifikasi</b><span class="mono">${fmt.phone(draft.phone)}</span></div></div>
-            <div class="form-actions"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button><button type="button" class="btn btn--ghost" id="chg">Ganti nomor</button><button class="btn" type="button" id="go">Lanjutkan</button></div>`;
-          form.querySelector('#go').onclick = () => { draft.step = 2; save(); render(); };
-          form.querySelector('#chg').onclick = () => { draft.phone = null; save(); render(); };
-          form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
-          return;
-        }
         form.innerHTML = `<div class="banner banner--demo demo-hint small" style="margin-bottom:16px">${icon('shield')}<div><b>Petunjuk Pendaftaran Demo</b> Masukkan nomor ponsel baru (mis. <code>081234567890</code>). Gunakan kode OTP <code>123456</code>. (Nomor demo <code>0812-0000-0001..3</code> sudah terdaftar).</div></div><div id="otp-root"></div><div class="form-actions"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button></div>`;
         form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
         OtpFlow({ root: form.querySelector('#otp-root'), mode: 'signup', cta: 'Kirim OTP', onVerified(p) { draft.phone = p; draft.step = 2; save(); render(); } });
