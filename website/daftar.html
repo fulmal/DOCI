@@ -36,8 +36,8 @@
       const { D, icon, esc, fmt, Store, Auth, toast, OtpFlow, Audit, confirmDialog } = DOCI;
       if (Auth.current() && Auth.current().status === 'aktif') { /* member aktif boleh melihat; tetap lanjut untuk demo */ }
       const STEPS = [
-        { t: 'Kode Referensi', s: 'Masukkan 6 digit kode referensi kombinasi huruf dan angka.', short: 'Referensi' },
         { t: 'Verifikasi Nomor Telepon', s: 'Nomor telepon menjadi identitas utama akun Anda.', short: 'Verifikasi' },
+        { t: 'Kode Referensi', s: 'Masukkan 6 digit kode referensi kombinasi huruf dan angka.', short: 'Referensi' },
         { t: 'Data Pribadi', s: 'Isi data sesuai identitas. Hanya data yang benar-benar diperlukan.', short: 'Data Pribadi' },
         { t: 'Data Kendaraan', s: 'Beritahu kami Ducati yang Anda kendarai.', short: 'Kendaraan' },
         { t: 'Chapter & Dokumen', s: 'Pilih chapter terdekat dan unggah dokumen persyaratan.', short: 'Chapter & Dokumen' },
@@ -66,7 +66,7 @@
         dots.querySelectorAll('li').forEach((li, k) => { li.classList.toggle('is-done', k < i); li.classList.toggle('is-current', k === i); li.querySelector('.n').innerHTML = k < i ? icon('check', 'icon--16') : (k + 1); });
         window.scrollTo({ top: 0, behavior: 'smooth' });
         form.innerHTML = ''; form.onsubmit = null; form.oninput = null; form.onclick = null; form.onchange = null;
-        [s_ref, s0, s1, s2, s3, s4, s5][i]();
+        [s0, s_ref, s1, s2, s3, s4, s5][i]();
         document.getElementById('step-title').focus?.();
       }
 
@@ -79,7 +79,21 @@
       const collect = () => { form.querySelectorAll('input:not([type=file]):not([type=checkbox]), select, textarea').forEach(el => { if (el.name) draft.data[el.name] = el.value; }); form.querySelectorAll('input[type=checkbox][name]').forEach(el => { draft.agree[el.name] = el.checked; }); };
       const req = (id, msg, test) => { const el = form.querySelector('#' + id); const v = (el.value || '').trim(); const bad = !v || (test && !test(v)); fieldErr(el, bad ? (v ? test.msg || msg : msg) : ''); return !bad; };
 
-      /* Step 0 — Kode Referensi */
+      /* Step 0 — OTP */
+      function s0() {
+        form.onsubmit = (e) => e.preventDefault();
+        if (draft.phone) {
+          form.innerHTML = `<div class="banner banner--success">${icon('check-circle')}<div><b>Nomor terverifikasi</b><span class="mono">${fmt.phone(draft.phone)}</span></div></div>
+            <div class="form-actions"><button type="button" class="btn btn--ghost" id="chg">Ganti nomor</button><button class="btn" type="button" id="go">Lanjutkan</button></div>`;
+          form.querySelector('#go').onclick = () => { draft.step = 1; save(); render(); };
+          form.querySelector('#chg').onclick = () => { draft.phone = null; save(); render(); };
+          return;
+        }
+        form.innerHTML = `<div class="banner banner--demo demo-hint small" style="margin-bottom:16px">${icon('shield')}<div><b>Petunjuk Pendaftaran Demo</b> Masukkan nomor ponsel baru (mis. <code>081234567890</code>). Gunakan kode OTP <code>123456</code>. (Nomor demo <code>0812-0000-0001..3</code> sudah terdaftar).</div></div><div id="otp-root"></div>`;
+        OtpFlow({ root: form.querySelector('#otp-root'), mode: 'signup', cta: 'Kirim OTP', onVerified(p) { draft.phone = p; draft.step = 1; save(); render(); } });
+      }
+
+      /* Step 1 — Kode Referensi */
       function s_ref() {
         form.innerHTML = F('refCode', 'Kode Referensi', { value: d().refCode || '', ph: 'mis. A1B2C3', ac: 'off', attrs: 'maxlength="6" style="text-transform:uppercase"' }) + nav();
         wireNav(() => {
@@ -96,22 +110,6 @@
           }
           return ok;
         });
-      }
-
-      /* Step 1 — OTP */
-      function s0() {
-        form.onsubmit = (e) => e.preventDefault();
-        if (draft.phone) {
-          form.innerHTML = `<div class="banner banner--success">${icon('check-circle')}<div><b>Nomor terverifikasi</b><span class="mono">${fmt.phone(draft.phone)}</span></div></div>
-            <div class="form-actions"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button><button type="button" class="btn btn--ghost" id="chg">Ganti nomor</button><button class="btn" type="button" id="go">Lanjutkan</button></div>`;
-          form.querySelector('#go').onclick = () => { draft.step = 2; save(); render(); };
-          form.querySelector('#chg').onclick = () => { draft.phone = null; save(); render(); };
-          form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
-          return;
-        }
-        form.innerHTML = `<div class="banner banner--demo demo-hint small" style="margin-bottom:16px">${icon('shield')}<div><b>Petunjuk Pendaftaran Demo</b> Masukkan nomor ponsel baru (mis. <code>081234567890</code>). Gunakan kode OTP <code>123456</code>. (Nomor demo <code>0812-0000-0001..3</code> sudah terdaftar).</div></div><div id="otp-root"></div><div class="form-actions"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button></div>`;
-        form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
-        OtpFlow({ root: form.querySelector('#otp-root'), mode: 'signup', cta: 'Kirim OTP', onVerified(p) { draft.phone = p; draft.step = 2; save(); render(); } });
       }
       /* Step 2 — pribadi */
       function s1() {
@@ -341,8 +339,8 @@
           setTimeout(() => { location.href = 'bayar.html?inv=' + encodeURIComponent(inv.id); }, 500);
         };
       }
-      if (draft.step > 1 && !draft.phone) draft.step = 1;
-      if (draft.step > 0 && !draft.data.refCode) draft.step = 0;
+      if (draft.step > 0 && !draft.phone) draft.step = 0;
+      if (draft.step > 1 && !draft.data.refCode) draft.step = 1;
       render();
     })();
   </script>
