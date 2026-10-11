@@ -36,6 +36,7 @@
       const { D, icon, esc, fmt, Store, Auth, toast, OtpFlow, Audit, confirmDialog } = DOCI;
       if (Auth.current() && Auth.current().status === 'aktif') { /* member aktif boleh melihat; tetap lanjut untuk demo */ }
       const STEPS = [
+        { t: 'Kode Referensi', s: 'Masukkan 6 digit kode referensi kombinasi huruf dan angka.', short: 'Referensi' },
         { t: 'Verifikasi Nomor Telepon', s: 'Nomor telepon menjadi identitas utama akun Anda.', short: 'Verifikasi' },
         { t: 'Data Pribadi', s: 'Isi data sesuai identitas. Hanya data yang benar-benar diperlukan.', short: 'Data Pribadi' },
         { t: 'Data Kendaraan', s: 'Beritahu kami Ducati yang Anda kendarai.', short: 'Kendaraan' },
@@ -60,12 +61,12 @@
         const i = draft.step, S = STEPS[i];
         document.getElementById('step-title').textContent = S.t;
         document.getElementById('step-desc').textContent = S.s;
-        document.getElementById('sp-label').innerHTML = `<b>${i + 1} dari 6</b> — ${S.short}`;
-        const bar = document.getElementById('sp-bar'); bar.setAttribute('aria-valuenow', i + 1); bar.firstElementChild.style.width = ((i + 1) / 6 * 100) + '%';
+        document.getElementById('sp-label').innerHTML = `<b>${i + 1} dari 7</b> — ${S.short}`;
+        const bar = document.getElementById('sp-bar'); bar.setAttribute('aria-valuenow', i + 1); bar.setAttribute('aria-valuemax', '7'); bar.firstElementChild.style.width = ((i + 1) / 7 * 100) + '%';
         dots.querySelectorAll('li').forEach((li, k) => { li.classList.toggle('is-done', k < i); li.classList.toggle('is-current', k === i); li.querySelector('.n').innerHTML = k < i ? icon('check', 'icon--16') : (k + 1); });
         window.scrollTo({ top: 0, behavior: 'smooth' });
         form.innerHTML = ''; form.onsubmit = null; form.oninput = null; form.onclick = null; form.onchange = null;
-        ({ 0: s0, 1: s1, 2: s2, 3: s3, 4: s4, 5: s5 })[i]();
+        [s_ref, s0, s1, s2, s3, s4, s5][i]();
         document.getElementById('step-title').focus?.();
       }
 
@@ -78,18 +79,39 @@
       const collect = () => { form.querySelectorAll('input:not([type=file]):not([type=checkbox]), select, textarea').forEach(el => { if (el.name) draft.data[el.name] = el.value; }); form.querySelectorAll('input[type=checkbox][name]').forEach(el => { draft.agree[el.name] = el.checked; }); };
       const req = (id, msg, test) => { const el = form.querySelector('#' + id); const v = (el.value || '').trim(); const bad = !v || (test && !test(v)); fieldErr(el, bad ? (v ? test.msg || msg : msg) : ''); return !bad; };
 
+      /* Step 0 — Kode Referensi */
+      function s_ref() {
+        form.innerHTML = F('refCode', 'Kode Referensi', { value: d().refCode || '', ph: 'mis. A1B2C3', ac: 'off', attrs: 'maxlength="6" style="text-transform:uppercase"' }) + nav();
+        wireNav(() => {
+          let ok = true;
+          ok = req('refCode', 'Kode referensi wajib diisi.', Object.assign(v => /^[a-zA-Z0-9]{6}$/.test(v), { msg: 'Kode harus persis 6 karakter (kombinasi huruf dan angka).' })) && ok;
+          if (ok) {
+            const val = form.querySelector('#refCode').value;
+            if (!/[a-zA-Z]/.test(val) || !/[0-9]/.test(val)) {
+              fieldErr(form.querySelector('#refCode'), 'Kode harus kombinasi huruf dan angka.');
+              ok = false;
+            } else {
+              d().refCode = val.toUpperCase();
+            }
+          }
+          return ok;
+        });
+      }
+
       /* Step 1 — OTP */
       function s0() {
         form.onsubmit = (e) => e.preventDefault();
         if (draft.phone) {
           form.innerHTML = `<div class="banner banner--success">${icon('check-circle')}<div><b>Nomor terverifikasi</b><span class="mono">${fmt.phone(draft.phone)}</span></div></div>
-            <div class="form-actions"><button type="button" class="btn btn--ghost" id="chg">Ganti nomor</button><button class="btn" type="button" id="go">Lanjutkan</button></div>`;
-          form.querySelector('#go').onclick = () => { draft.step = 1; save(); render(); };
+            <div class="form-actions"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button><button type="button" class="btn btn--ghost" id="chg">Ganti nomor</button><button class="btn" type="button" id="go">Lanjutkan</button></div>`;
+          form.querySelector('#go').onclick = () => { draft.step = 2; save(); render(); };
           form.querySelector('#chg').onclick = () => { draft.phone = null; save(); render(); };
+          form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
           return;
         }
-        form.innerHTML = `<div class="banner banner--demo demo-hint small" style="margin-bottom:16px">${icon('shield')}<div><b>Petunjuk Pendaftaran Demo</b> Masukkan nomor ponsel baru (mis. <code>081234567890</code>). Gunakan kode OTP <code>123456</code>. (Nomor demo <code>0812-0000-0001..3</code> sudah terdaftar).</div></div><div id="otp-root"></div>`;
-        OtpFlow({ root: form.querySelector('#otp-root'), mode: 'signup', cta: 'Kirim OTP', onVerified(p) { draft.phone = p; draft.step = 1; save(); render(); } });
+        form.innerHTML = `<div class="banner banner--demo demo-hint small" style="margin-bottom:16px">${icon('shield')}<div><b>Petunjuk Pendaftaran Demo</b> Masukkan nomor ponsel baru (mis. <code>081234567890</code>). Gunakan kode OTP <code>123456</code>. (Nomor demo <code>0812-0000-0001..3</code> sudah terdaftar).</div></div><div id="otp-root"></div><div class="form-actions"><button type="button" class="btn btn--ghost" data-back>${icon('chev-left', 'icon--16')}Kembali</button></div>`;
+        form.querySelector('[data-back]').onclick = () => { draft.step--; save(); render(); };
+        OtpFlow({ root: form.querySelector('#otp-root'), mode: 'signup', cta: 'Kirim OTP', onVerified(p) { draft.phone = p; draft.step = 2; save(); render(); } });
       }
       /* Step 2 — pribadi */
       function s1() {
@@ -302,7 +324,7 @@
       /* Step 6 — ringkasan */
       function s5() {
         const c = D.CHAPTERS.find(x => x.id === d().chapter);
-        form.innerHTML = `<dl class="kv"><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Gol. Darah</dt><dd>${esc(d().bloodType)}</dd></div><div><dt>Kontak Darurat</dt><dd>${esc(d().emergName)} (${esc(d().emergRel)}) - ${esc(d().emergPhone)}</dd></div><div><dt>Kendaraan (${vehicles().length})</dt><dd>${vehicles().map(v => `<div class="sum-veh">${esc(bikeLabel(v))}<span class="small muted">Plat: ${esc(v.plate)} · Rangka: ${esc(v.chassis || '—')} · Mesin: ${esc(v.engine || '—')} · STNK ${v.stnk ? 'terunggah' : 'belum ada'}</span></div>`).join('')}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah · ${vehicles().filter(v => v.stnk).length} STNK menunggu verifikasi admin</dd></div></dl>
+        form.innerHTML = `<dl class="kv"><div><dt>Kode Referensi</dt><dd class="mono">${esc(d().refCode)}</dd></div><div><dt>Nomor telepon</dt><dd class="mono">${fmt.phone(draft.phone)}</dd></div><div><dt>Nama</dt><dd>${esc(d().fullName)}</dd></div><div><dt>Kota</dt><dd>${esc(d().city)}</dd></div><div><dt>Gol. Darah</dt><dd>${esc(d().bloodType)}</dd></div><div><dt>Kontak Darurat</dt><dd>${esc(d().emergName)} (${esc(d().emergRel)}) - ${esc(d().emergPhone)}</dd></div><div><dt>Kendaraan (${vehicles().length})</dt><dd>${vehicles().map(v => `<div class="sum-veh">${esc(bikeLabel(v))}<span class="small muted">Plat: ${esc(v.plate)} · Rangka: ${esc(v.chassis || '—')} · Mesin: ${esc(v.engine || '—')} · STNK ${v.stnk ? 'terunggah' : 'belum ada'}</span></div>`).join('')}</dd></div><div><dt>Chapter</dt><dd>${c ? c.name : '-'}</dd></div><div><dt>Dokumen</dt><dd>KTP & SIM C terunggah · ${vehicles().filter(v => v.stnk).length} STNK menunggu verifikasi admin</dd></div></dl>
         <h3 style="margin:24px 0 8px;font-size:17px">Rincian Biaya</h3>
         <dl class="kv kv--total"><div><dt>Biaya join (pendaftaran + iuran 12 bulan pertama)</dt><dd class="num">Rp 1.500.000</dd></div><div><dt>Total</dt><dd class="num">Rp 1.500.000</dd></div></dl>
         <p class="help" style="margin-top:8px">Biaya layanan metode pembayaran (jika ada) ditampilkan di langkah berikutnya. Pembayaran otomatis — tidak perlu unggah bukti transfer.</p>
@@ -319,7 +341,8 @@
           setTimeout(() => { location.href = 'bayar.html?inv=' + encodeURIComponent(inv.id); }, 500);
         };
       }
-      if (draft.step > 0 && !draft.phone) draft.step = 0;
+      if (draft.step > 1 && !draft.phone) draft.step = 1;
+      if (draft.step > 0 && !draft.data.refCode) draft.step = 0;
       render();
     })();
   </script>
