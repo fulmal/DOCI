@@ -161,7 +161,7 @@ dialog.lightbox[open] { animation: fade-in var(--duration-base) ease-out; displa
 .stepper__label b { color: var(--color-carbon); font-family: var(--font-display); }
 .stepper__dots { display: none; margin-top: 16px; }
 @media (min-width: 768px) {
-  .stepper__dots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; list-style: none; }
+  .stepper__dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; list-style: none; }
   .stepper__dots li { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: 12px; font-weight: 600; color: var(--color-slate-500); }
   .stepper__dots .n { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--color-slate-300); display: grid; place-items: center; font-family: var(--font-display); background: #fff; transition: all 300ms ease-out; }
   .stepper__dots li.is-current { color: var(--color-carbon); } .stepper__dots li.is-current .n { border-color: var(--color-primary); color: var(--color-primary); box-shadow: 0 0 0 4px var(--color-red-50); }
