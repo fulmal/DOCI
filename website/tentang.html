@@ -66,7 +66,7 @@
       $('#ic-w').innerHTML = icon('alert');
       $('#misi').innerHTML = ['Menyelenggarakan kegiatan riding, touring, dan track day yang aman.', 'Memperkuat persaudaraan antar chapter di seluruh Indonesia.', 'Mendorong budaya keselamatan berkendara dan etika di jalan.', 'Menjalankan kegiatan sosial yang berdampak.'].map(t => `<li>${icon('check')}<span>${t}</span></li>`).join('');
       $('#nilai').innerHTML = [['Keselamatan', 'shield'], ['Persaudaraan', 'users'], ['Integritas', 'star'], ['Kepedulian', 'heart']].map(v => `<li>${icon(v[1])}<span>${v[0]}</span></li>`).join('');
-      const roles = ['Ketua Umum', 'Wakil Ketua', 'Sekretaris Jenderal', 'Bendahara', 'Koordinator Kegiatan', 'Koordinator Keselamatan', 'Koordinator Humas & Media', 'Koordinator Chapter'];
+      const roles = ['Ketua Umum', 'Wakil Ketua', 'Sekretaris Jenderal', 'Bendahara'];
       $('#org').innerHTML = roles.map((r, i) => `<article class="card org-card reveal"><span class="avatar avatar--64" aria-hidden="true">${icon('user', 'icon--24')}</span><h3 style="font-size:16px;margin:0 0 4px">${r}</h3><span class="muted small">Nama menyusul</span></article>`).join('');
       $('#join').innerHTML = joinCta();
       if (location.hash) setTimeout(() => document.querySelector(location.hash)?.scrollIntoView(), 50);
