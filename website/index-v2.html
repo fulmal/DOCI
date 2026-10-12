@@ -21,22 +21,23 @@
   <div id="site-header"></div>
 
   <main id="main">
+    <!-- SPONSOR STRIP (FULL WIDTH) -->
+    <div style="background: #fff; width: 100%; padding: 16px 0; border-bottom: 1px solid var(--color-border); position: relative; z-index: 10;">
+      <div class="container text-center">
+        <div style="display:flex; flex-wrap:wrap; gap:24px 32px; align-items:center; justify-content:center;">
+          <style>.sponsor-logo { width: 200px; max-width: 45vw; height: 80px; object-fit: contain; mix-blend-mode: multiply; }</style>
+          <img class="sponsor-logo" src="assets/img/sponsor-pertamina-final.png" alt="Pertamina">
+          <img class="sponsor-logo" src="assets/img/sponsor-new2.png" alt="Pirelli">
+          <img class="sponsor-logo" src="assets/img/sponsor-telkomsel-new.png" alt="Telkomsel">
+          <img class="sponsor-logo" src="assets/img/sponsor-garuda-new.png" alt="Garuda Indonesia">
+        </div>
+      </div>
+    </div>
+
     <!-- HERO -->
-    <section class="hero" aria-labelledby="hero-title" style="min-height: 100vh;">
+    <section class="hero" aria-labelledby="hero-title" style="min-height: calc(100vh - 113px);">
       <img class="hero__img" src="assets/img/hero.jpg" alt="Rombongan rider Ducati berformasi di jalan pegunungan saat matahari terbenam" width="1400" height="768" fetchpriority="high">
       <div class="container hero__inner" style="display:flex; flex-direction:column; justify-content:center; height:100%;">
-        <!-- SPONSOR IN HEADER -->
-        <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); padding: 24px; border-radius: 16px; margin-bottom: 48px; width: 100%;">
-          <span class="overline" style="color:var(--color-slate-500); margin-bottom:16px; display:block; text-align:center;">Sponsor &amp; Partner</span>
-          <div style="display:flex; flex-wrap:wrap; gap:24px 32px; align-items:center; justify-content:center;">
-            <style>.sponsor-logo { width: 200px; max-width: 45vw; height: 80px; object-fit: contain; mix-blend-mode: multiply; }</style>
-            <img class="sponsor-logo" src="assets/img/sponsor-pertamina-final.png" alt="Pertamina">
-            <img class="sponsor-logo" src="assets/img/sponsor-new2.png" alt="Pirelli">
-            <img class="sponsor-logo" src="assets/img/sponsor-telkomsel-new.png" alt="Telkomsel">
-            <img class="sponsor-logo" src="assets/img/sponsor-garuda-new.png" alt="Garuda Indonesia">
-          </div>
-        </div>
-
         <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center;">
           <h1 id="hero-title">Satu Keluarga di Atas <em>Roda Dua</em></h1>
           <p>Komunitas Ducati Indonesia — daftar member dalam 15 menit, bayar otomatis, serta ikuti touring & track day bersama seluruh anggota.</p>
