@@ -73,6 +73,21 @@
       const { D, icon, esc, fmt, Store, Auth, Audit, toast, statusChip, eventCard, cardHTML, qrSvg, openDialog, closeDialog, Upload, $, $$ } = DOCI;
       let u = Auth.require(); if (!u) return;
       { const fresh = Store.get('users', {})[u.phone]; if (fresh && fresh.vehicles) u = Object.assign({}, u, { vehicles: fresh.vehicles }); }
+      
+      // Inject dummy active invoice for demonstration
+      let _invs = Store.get('invoices', []);
+      if (!_invs.find(i => i.phone === u.phone && i.status === 'menunggu')) {
+        _invs.push({
+          id: 'INV-DEMO-' + Math.floor(Math.random()*10000),
+          phone: u.phone,
+          title: 'Iuran Tahunan DOCI 2026',
+          amount: 1500000,
+          status: 'menunggu',
+          expires: new Date(Date.now() + 7 * 86400000).toISOString(),
+          created: new Date().toISOString()
+        });
+        Store.set('invoices', _invs);
+      }
       const VIEWS = [['beranda', 'Beranda', 'home'], ['kegiatan', 'Kegiatan', 'calendar'], ['dokumentasi', 'Dokumentasi', 'image'], ['kartu', 'Kartu', 'card']];
       const chapterName = (id) => (D.CHAPTERS.find(c => c.id === id) || {}).name || 'DOCI';
       const memberActive = () => u.status === 'aktif' && new Date(u.activeUntil) > new Date();
