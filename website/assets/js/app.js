@@ -488,9 +488,9 @@
     </div>
     
     <div class="mcard mcard--back" role="img" aria-label="Kartu member belakang">
-      <div class="mcard__header">
+      <div class="mcard__header mcard__header--back">
          ${logo(true, '#')}
-         <span class="mcard__brand">DUCATI OFFICIAL CLUB INDONESIA</span>
+         <div class="mcard__qr-box">${qrSvg(_id, 64)} <span>SCAN<br>VALIDASI</span></div>
       </div>
       <div class="mcard__panels">
          <div class="mcard__panel">
@@ -507,7 +507,6 @@
          </div>
       </div>
       <div class="mcard__footer-back">
-         <div class="mcard__qr-box">${qrSvg(_id, 64)} <span>SCAN VALIDASI</span></div>
          <div class="mcard__rules">
             <strong>KETENTUAN KARTU ANGGOTA DOCI:</strong>
             <ul>

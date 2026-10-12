@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kuitansi — DOCI</title>
+  <meta name="description" content="Bukti bayar / kuitansi resmi DOCI.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/img/favicon.png" type="image/png"><link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css"><link rel="stylesheet" href="assets/css/billdoc.css?v=2">
+</head>
+<body data-page="kwitansi" class="bd-page">
+  <main id="main">
+    <div class="bd-toolbar no-print" id="bd-toolbar">
+      <a class="btn btn--ghost btn--sm" href="javascript:history.back()">← Kembali</a>
+      <div class="grp" id="bd-actions"><button class="btn btn--sm" onclick="window.print()">Unduh PDF / Cetak</button></div>
+    </div>
+    <div id="doc"></div>
+  </main>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/billdoc.js?v=2"></script>
+  <script>
+    (function () {
+      const { Store } = window.DOCI;
+      const id = new URLSearchParams(location.search).get('inv');
+      const inv = Store.get('invoices', []).find(i => i.id === id);
+      const msg = (t) => document.getElementById('bd-toolbar').insertAdjacentHTML('afterend', `<p style="text-align:center;padding:40px">${t}</p>`);
+      if (!inv) return msg('Kuitansi tidak ditemukan.');
+      if (inv.status !== 'berhasil') return msg('Kuitansi hanya tersedia setelah pembayaran berhasil. <a href="bayar.html?inv=' + encodeURIComponent(inv.id) + '">Lanjutkan pembayaran</a>');
+      document.title = 'Kuitansi ' + inv.id.replace('INV/', 'KWT/') + ' — DOCI';
+      DOCI.BillDoc.mount(document.getElementById('doc'), DOCI.BillDoc.receipt(inv));
+      document.getElementById('bd-actions').insertAdjacentHTML('afterbegin', `<a class="btn btn--secondary btn--sm" href="invoice.html?inv=${encodeURIComponent(inv.id)}">Lihat Invoice</a>`);
+    })();
+  </script>
+</body>
+</html>

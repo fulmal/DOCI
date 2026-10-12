@@ -14,23 +14,33 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/doci.css">
-  <link rel="stylesheet" href="assets/css/pages.css?v=ig2">
+  <link rel="stylesheet" href="assets/css/pages.css?v=ig3">
   <link rel="preload" as="image" href="assets/img/hero.jpg" fetchpriority="high">
 </head>
 <body data-page="home">
   <div id="site-header"></div>
 
   <main id="main">
-    <!-- HERO -->
-    <section class="hero" aria-labelledby="hero-title">
-      <img class="hero__img" src="assets/img/hero.jpg" alt="Rombongan rider Ducati berformasi di jalan pegunungan saat matahari terbenam" width="1400" height="768" fetchpriority="high">
-      <div class="container hero__inner">
-        <h1 id="hero-title">Satu Keluarga di Atas <em>Roda Dua</em></h1>
-        <p>Komunitas Ducati Indonesia — daftar member dalam 15 menit, bayar otomatis, serta ikuti touring & track day bersama seluruh anggota.</p>
-        <div class="btn-group">
-          <a class="btn btn--lg" href="membership.html">Daftar Menjadi Member</a>
-          <a class="btn btn--lg btn--outline-light" href="kegiatan.html">Lihat Kegiatan</a>
+    <!-- HERO CAROUSEL: slide 1 = sambutan (statis, LCP), sisanya dibangun dari data kegiatan & berita -->
+    <section class="hc" id="hero-carousel" aria-roledescription="carousel" aria-label="Banner utama DOCI">
+      <div class="hc__track" id="hc-track" tabindex="0" aria-live="off">
+        <div class="hero hc__slide is-active" role="group" aria-roledescription="slide" aria-label="1" aria-labelledby="hero-title">
+          <img class="hero__img" src="assets/img/hero.jpg" alt="Rombongan rider Ducati berformasi di jalan pegunungan saat matahari terbenam" width="1400" height="768" fetchpriority="high">
+          <div class="container hero__inner">
+            <h1 id="hero-title">Satu Keluarga di Atas <em>Roda Dua</em></h1>
+            <p>Komunitas Ducati Indonesia — daftar member dalam 15 menit, bayar otomatis, serta ikuti touring &amp; track day bersama seluruh anggota.</p>
+            <div class="btn-group">
+              <a class="btn btn--lg" href="membership.html">Daftar Menjadi Member</a>
+              <a class="btn btn--lg btn--outline-light" href="kegiatan.html">Lihat Kegiatan</a>
+            </div>
+          </div>
         </div>
+      </div>
+      <button type="button" class="hc__btn hc__nav hc__nav--prev" id="hc-prev" aria-label="Banner sebelumnya" hidden></button>
+      <button type="button" class="hc__btn hc__nav hc__nav--next" id="hc-next" aria-label="Banner berikutnya" hidden></button>
+      <div class="hc__ctrl" id="hc-ctrl" hidden>
+        <div class="hc__dots" id="hc-dots" role="group" aria-label="Pilih banner"></div>
+        <button type="button" class="hc__btn hc__pause" id="hc-pause" aria-pressed="false" aria-label="Jeda putar otomatis"></button>
       </div>
     </section>
 
@@ -116,13 +126,77 @@
   <div id="site-footer"></div>
   <dialog class="lightbox" id="lightbox" aria-label="Penampil foto"></dialog>
 
-  <script src="assets/js/data.js"></script>
+  <script src="assets/js/data.js?v=sp1"></script>
   <script src="assets/js/app.js?v=ig1"></script>
   <script src="assets/js/gallery.js"></script>
   <script>
     (function () {
-      const { D, eventCard, newsCard, icon, joinCta } = DOCI;
+      const { D, eventCard, newsCard, icon, joinCta, fmt, esc } = DOCI;
       const upcoming = D.EVENTS.filter(e => e.status === 'terbit' || e.status === 'berlangsung').sort((a, b) => a.start - b.start).slice(0, 3);
+
+      /* ---------- Hero carousel ---------- */
+      (function heroCarousel() {
+        const track = document.getElementById('hc-track');
+        const clip = (t, n) => { t = String(t || '').trim(); return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '…' : t; };
+        const sponsorsOf = (e) => (e.sponsors || D.SPONSOR_BY_CAT[e.cat] || []).map(k => D.SPONSORS[k]).filter(Boolean);
+        const eventSlide = (e) => {
+          const c = D.CATEGORIES[e.cat] || { label: 'Kegiatan', color: '#D5001C', text: '#fff' }, left = e.quota - e.taken, live = e.status === 'berlangsung';
+          const sp = sponsorsOf(e);
+          const quota = left <= 0 ? 'Kuota penuh · waiting list' : left <= 10 ? `Sisa ${left} kuota` : `${e.taken}/${e.quota} peserta`;
+          return `<div class="hero hc__slide" role="group" aria-roledescription="slide">
+            <img class="hero__img" src="${esc(e.img)}" alt="" width="1400" height="768" loading="lazy">
+            <div class="container hero__inner">
+              <div class="hc__badges"><span class="hc__badge hc__badge--cat" style="background:${c.color};color:${c.text}">${c.label}</span>${live ? `<span class="hc__badge hc__badge--live">${icon('activity')}Sedang berlangsung</span>` : `<span class="hc__badge">${icon('calendar')}Pendaftaran dibuka</span>`}</div>
+              <h2 class="hc__title">${esc(e.title)}</h2>
+              <div class="hc__meta"><span>${icon('calendar')}${fmt.date(e.start)} · ${fmt.time(e.start)}</span><span>${icon('pin')}${esc(e.loc)}</span><span>${icon('users')}${quota}</span><span>${icon('card')}${fmt.rp(e.price)}</span></div>
+              <p class="hc__lead">${esc(clip(e.desc, 130))}</p>
+              <div class="btn-group"><a class="btn btn--lg" href="kegiatan-detail.html?id=${esc(e.id)}">Lihat Detail &amp; Daftar</a><a class="btn btn--lg btn--outline-light" href="kegiatan.html">Semua Kegiatan</a></div>
+              ${sp.length ? `<div class="hc__sponsors"><small>Didukung<br>oleh</small>${sp.map(s => `<img src="${s.logo}" alt="${esc(s.name)}" loading="lazy">`).join('')}</div>` : ''}
+            </div></div>`;
+        };
+        const newsSlide = (n) => `<div class="hero hc__slide" role="group" aria-roledescription="slide">
+            <img class="hero__img" src="${esc(n.img)}" alt="" width="1400" height="768" loading="lazy">
+            <div class="container hero__inner">
+              <div class="hc__badges"><span class="hc__badge hc__badge--live">${icon('newspaper')}Informasi · ${esc(n.cat)}</span><span class="hc__badge">${icon('calendar')}${fmt.date(n.date)}</span></div>
+              <h2 class="hc__title">${esc(n.title)}</h2>
+              <p class="hc__lead">${esc(clip(n.excerpt, 150))}</p>
+              <div class="btn-group"><a class="btn btn--lg" href="berita-detail.html?id=${esc(n.id)}">Baca Selengkapnya</a><a class="btn btn--lg btn--outline-light" href="berita.html">Semua Berita</a></div>
+            </div></div>`;
+        const evs = D.EVENTS.filter(e => e.status === 'terbit' || e.status === 'berlangsung').sort((a, b) => (a.status === 'berlangsung' ? -1 : 0) - (b.status === 'berlangsung' ? -1 : 0) || a.start - b.start).slice(0, 4);
+        track.insertAdjacentHTML('beforeend', evs.map(eventSlide).join('') + (D.NEWS[0] ? newsSlide(D.NEWS[0]) : ''));
+        const slides = [...track.children], N = slides.length;
+        if (N < 2) return;
+        const dotsEl = document.getElementById('hc-dots'), prev = document.getElementById('hc-prev'), next = document.getElementById('hc-next'), pause = document.getElementById('hc-pause');
+        slides.forEach((s, i) => { s.setAttribute('aria-label', `${i + 1} dari ${N}`); s.removeAttribute('aria-labelledby'); });
+        dotsEl.innerHTML = slides.map((_, i) => `<button type="button" class="hc__dot" aria-label="Banner ${i + 1}"></button>`).join('');
+        const dots = [...dotsEl.children];
+        prev.innerHTML = icon('chev-left'); next.innerHTML = icon('chev-right');
+        pause.innerHTML = '<svg class="icon ic-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14M16 5v14"/></svg><svg class="icon ic-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4v16l13-8z"/></svg>';
+        ['hc-ctrl', 'hc-prev', 'hc-next'].forEach(id => document.getElementById(id).hidden = false);
+        let idx = 0, timer = null, userPaused = matchMedia('(prefers-reduced-motion: reduce)').matches, hovering = false;
+        const setActive = (i) => {
+          idx = i;
+          slides.forEach((s, k) => { s.classList.toggle('is-active', k === i); s.inert = k !== i; });
+          dots.forEach((d, k) => k === i ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current'));
+        };
+        const go = (i) => { i = (i + N) % N; track.scrollTo({ left: i * track.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); setActive(i); };
+        let raf = 0;
+        track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { const i = Math.round(track.scrollLeft / track.clientWidth); if (i !== idx && i >= 0 && i < N) setActive(i); }); }, { passive: true });
+        const stop = () => { clearInterval(timer); timer = null; };
+        const start = () => { stop(); if (!userPaused && !hovering && !document.hidden) timer = setInterval(() => go(idx + 1), 6500); };
+        const syncPause = () => { pause.setAttribute('aria-pressed', userPaused); pause.setAttribute('aria-label', userPaused ? 'Putar otomatis' : 'Jeda putar otomatis'); track.setAttribute('aria-live', userPaused ? 'polite' : 'off'); };
+        prev.onclick = () => { go(idx - 1); start(); }; next.onclick = () => { go(idx + 1); start(); };
+        dots.forEach((d, i) => d.onclick = () => { go(i); start(); });
+        pause.onclick = () => { userPaused = !userPaused; syncPause(); start(); };
+        const hero = document.getElementById('hero-carousel');
+        hero.addEventListener('mouseenter', () => { hovering = true; stop(); }); hero.addEventListener('mouseleave', () => { hovering = false; start(); });
+        hero.addEventListener('focusin', () => { hovering = true; stop(); }); hero.addEventListener('focusout', () => { hovering = false; start(); });
+        track.addEventListener('touchstart', stop, { passive: true }); track.addEventListener('touchend', () => setTimeout(start, 4000), { passive: true });
+        track.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); go(idx + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx - 1); } });
+        document.addEventListener('visibilitychange', start);
+        addEventListener('resize', () => { track.style.scrollBehavior = 'auto'; track.scrollLeft = idx * track.clientWidth; track.style.scrollBehavior = ''; });
+        setActive(0); syncPause(); start();
+      })();
       document.getElementById('home-events').innerHTML = upcoming.map(e => `<div class="reveal">${eventCard(e)}</div>`).join('');
       document.getElementById('home-news').innerHTML = D.NEWS.slice(0, 3).map(n => `<div class="reveal">${newsCard(n)}</div>`).join('');
       const feats = [['user', 'Daftar < 15 Menit', 'Verifikasi nomor via OTP, isi form bertahap, lalu bayar. Tanpa antre, tanpa berkas manual.'], ['card', 'Bayar Otomatis', 'Virtual Account, QRIS, e-wallet. Status berubah real-time — tanpa upload bukti transfer.'], ['calendar', 'Kalender Terpadu', 'Semua touring, riding, dan track day tiap chapter dalam satu kalender, lengkap dengan kuota real-time.'], ['image', 'Arsip Dokumentasi', 'Unggah foto & video kegiatan langsung dari HP. Tersimpan rapi dan mudah dicari kembali.']];
