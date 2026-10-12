@@ -202,25 +202,50 @@ dialog.lightbox[open] { animation: fade-in var(--duration-base) ease-out; displa
 .pay-sticky { position: sticky; bottom: 0; background: #fff; margin: var(--space-4) -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--color-border); z-index: 10; }
 @media (min-width: 768px) { .pay-sticky { position: static; margin: var(--space-4) 0 0; padding: 0; border: 0; } }
 
-/* ---------- Membership card ---------- */
-.mcard { position: relative; width: 100%; max-width: 420px; aspect-ratio: 1.586 / 1; border-radius: 18px; padding: 22px; color: #fff; overflow: hidden; background: linear-gradient(135deg, #D5001C 0%, #B50018 55%, #9E001F 100%); box-shadow: 0 18px 40px rgba(213, 0, 28, .35); isolation: isolate; display: flex; flex-direction: row; justify-content: space-between; gap: 12px; container-type: inline-size; }
-.mcard::before { content: ""; position: absolute; right: -40px; top: -40px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255, 255, 255, .08); z-index: -1; }
-.mcard::after { content: ""; position: absolute; left: -60px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%; background: rgba(0, 0, 0, .12); z-index: -1; }
-.mcard__left { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
-.mcard__top { display: flex; align-items: center; gap: 10px; }
-.mcard .logo-img { height: 32px; height: 7.6cqw; max-width: 130px; }
-.mcard__tag { font-family: var(--font-display); font-size: 10px; font-size: 2.4cqw; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; opacity: .9; padding: 4px 10px; border: 1px solid rgba(255, 255, 255, .5); border-radius: 999px; }
-.mcard__who { display: flex; flex-direction: column; }
-.mcard__photo { width: 100px; width: 24cqw; aspect-ratio: 3 / 4; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.95); overflow: hidden; background: rgba(0, 0, 0, 0.25); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); margin-bottom: 6px; flex: none; }
-.mcard__photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-.mcard__name { font-family: var(--font-display); font-weight: 800; font-size: 21px; font-size: 5cqw; line-height: 1.15; }
-.mcard__id { font-family: var(--font-mono); font-size: 14.5px; font-size: 3.4cqw; letter-spacing: .08em; margin-top: 3px; }
-.mcard__right { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; flex: none; }
-.mcard__qr { background: #fff; padding: 4px; border-radius: 8px; flex: none; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
-.mcard__qr svg { width: 64px; height: 64px; width: 15cqw; height: 15cqw; display: block; }
-.mcard__meta { display: flex; flex-direction: column; gap: 8px; text-align: right; font-size: 11px; font-size: 2.6cqw; opacity: .95; }
-.mcard__meta b { display: block; font-family: var(--font-display); font-size: 12.5px; font-size: 3cqw; }
-@media (max-width: 480px) { .mcard { padding: 16px; } }
+/* ---------- Membership card (Flip) ---------- */
+.mcard-flip { perspective: 1000px; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 1.586 / 1; cursor: pointer; }
+.mcard-flip__inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+.mcard-flip.is-flipped .mcard-flip__inner { transform: rotateY(180deg); }
+
+.mcard { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 18px; padding: 24px; color: #fff; overflow: hidden; background: linear-gradient(135deg, #111 0%, #300 40%, #700000 80%, #d5001c 100%); box-shadow: 0 18px 40px rgba(0, 0, 0, .4); display: flex; flex-direction: column; justify-content: space-between; container-type: inline-size; isolation: isolate; }
+.mcard::after { content: ""; position: absolute; inset: 0; background: url('../img/eagle-bg.png') no-repeat center right / 70%; opacity: 0.15; z-index: -1; }
+.mcard--back { transform: rotateY(180deg); }
+.mcard > * { position: relative; z-index: 1; }
+
+.mcard__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.mcard__header .logo-img { height: 28px; max-width: 140px; }
+.mcard__brand { font-family: var(--font-display); font-size: 3cqw; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; text-align: right; max-width: 50%; line-height: 1.2; }
+
+.mcard__body { display: flex; gap: 16px; align-items: stretch; flex: 1; }
+.mcard__photo { width: 22cqw; aspect-ratio: 3/4; border-radius: 4px; overflow: hidden; background: #222; flex: none; }
+.mcard__photo img { width: 100%; height: 100%; object-fit: cover; }
+.mcard__details { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.mcard__name { font-family: var(--font-display); font-size: 5cqw; font-weight: 800; text-transform: uppercase; line-height: 1.1; margin-bottom: 8px; }
+.mcard__nra { font-size: 3cqw; font-family: var(--font-mono); font-weight: 600; border: 1.5px solid #fff; border-radius: 99px; padding: 4px 12px; display: inline-block; align-self: flex-start; margin-bottom: 12px; }
+
+.mcard__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; font-size: 2.5cqw; line-height: 1.2; text-transform: uppercase; opacity: 0.9; }
+.mcard__grid b { display: block; font-weight: 700; font-size: 3cqw; color: #fff; margin-top: 2px; }
+.mcard__grid .text-green { color: #00ff88; }
+
+.mcard__footer { font-size: 2.8cqw; font-weight: 700; text-transform: uppercase; margin-top: 16px; }
+
+/* Back panels */
+.mcard__panels { display: flex; gap: 12px; flex: 1; }
+.mcard__panel { flex: 1; background: rgba(0, 0, 0, 0.6); border-radius: 8px; padding: 12px; font-size: 2.6cqw; display: flex; flex-direction: column; gap: 6px; }
+.mcard__panel strong { display: block; font-size: 3cqw; margin-bottom: 4px; font-weight: 800; color: #fff; text-transform: uppercase; }
+.mcard__panel div { display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+.mcard__panel div span { opacity: 0.8; }
+.mcard__panel div b { font-weight: 700; text-align: right; }
+
+.mcard__footer-back { display: flex; gap: 16px; align-items: stretch; margin-top: 16px; }
+.mcard__qr-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 2cqw; font-weight: 800; background: #fff; color: #000; padding: 6px; border-radius: 8px; flex: none; line-height: 1; }
+.mcard__qr-box svg { width: 14cqw; height: 14cqw; display: block; }
+.mcard__rules { flex: 1; font-size: 2cqw; line-height: 1.35; opacity: 0.9; }
+.mcard__rules strong { font-size: 2.4cqw; font-weight: 800; display: block; margin-bottom: 4px; }
+.mcard__rules ul { margin: 0; padding-left: 14px; }
+.mcard__rules li { margin-bottom: 2px; }
+
+@media (max-width: 480px) { .mcard { padding: 16px; } .mcard__panels { margin-top: 12px; gap: 8px; } .mcard__footer-back { margin-top: 12px; gap: 12px; } }
 
 /* ---------- Event detail ---------- */
 .event-hero { position: relative; color: #fff; isolation: isolate; min-height: 340px; display: flex; align-items: flex-end; background: var(--color-carbon); }

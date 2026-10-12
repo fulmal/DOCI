@@ -451,11 +451,75 @@
   }
 
   /* ---------- Membership card (digital) ---------- */
-  function cardHTML({ name, id, chapter, until, photo }) {
+  function cardHTML({ name, id, chapter, until, photo, docId, bike, blood, emergName, emergPhone, emergRel, plate, vin }) {
     const photoUrl = photo || 'assets/img/member-photo.jpg';
-    return `<div class="mcard" role="img" aria-label="Kartu member ${esc(name)}, ${id}"><div class="mcard__left"><div class="mcard__top">${logo(true, '#')}<span class="mcard__tag">Member</span></div>
-      <div class="mcard__who"><div class="mcard__photo"><img src="${photoUrl}" alt="Foto ${esc(name)}"></div><div class="mcard__name">${esc(name)}</div><div class="mcard__id">${id}</div></div></div>
-      <div class="mcard__right"><div class="mcard__qr">${qrSvg(id, 64)}</div><div class="mcard__meta"><div><span>Chapter</span><b>${esc(chapter)}</b></div><div><span>Berlaku s.d.</span><b>${fmt.dateShort(until)}</b></div></div></div></div>`;
+    const _id = id || 'DOCI-00-00000';
+    const _docId = docId || 'DOC-IT-884019';
+    const _bike = bike || 'Ducati';
+    const _blood = blood || '-';
+    const _emergPhone = emergPhone || '-';
+    const _emergRel = emergRel || '-';
+    const _plate = plate || '-';
+    const _vin = vin || '-';
+
+    return `<div class="mcard-flip" onclick="this.classList.toggle('is-flipped')">
+  <div class="mcard-flip__inner">
+    <div class="mcard mcard--front" role="img" aria-label="Kartu member depan">
+      <div class="mcard__header">
+         ${logo(true, '#')}
+         <span class="mcard__brand">DUCATI OFFICIAL CLUB INDONESIA</span>
+      </div>
+      <div class="mcard__body">
+         <div class="mcard__photo"><img src="${photoUrl}" alt="Foto"></div>
+         <div class="mcard__details">
+            <div class="mcard__name">${esc(name)}</div>
+            <div class="mcard__nra">NRA : ${_id}</div>
+            <div class="mcard__grid">
+               <div>CHAPTER:<br><b>${esc(chapter)}</b></div>
+               <div>STATUS ANGGOTA:<br><b class="text-green">Active Member</b></div>
+               <div>DUCATI ID (DOC):<br><b>${_docId}</b></div>
+               <div>MODEL MOTOR:<br><b>${esc(_bike)}</b></div>
+            </div>
+         </div>
+      </div>
+      <div class="mcard__footer">
+         BERLAKU S/D : ${fmt.dateShort(until)}
+      </div>
+    </div>
+    
+    <div class="mcard mcard--back" role="img" aria-label="Kartu member belakang">
+      <div class="mcard__header">
+         ${logo(true, '#')}
+         <span class="mcard__brand">DUCATI OFFICIAL CLUB INDONESIA</span>
+      </div>
+      <div class="mcard__panels">
+         <div class="mcard__panel">
+            <strong>EMERGENCY & MEDICAL DATA</strong>
+            <div><span>Gol. Darah:</span><b>${esc(_blood)}</b></div>
+            <div><span>Kontak Darurat:</span><b>${esc(_emergPhone)}</b></div>
+            <div><span>Hubungan:</span><b>${esc(_emergRel)}</b></div>
+         </div>
+         <div class="mcard__panel">
+            <strong>DATA REGISTRASI UNIT</strong>
+            <div><span>Model:</span><b>${esc(_bike)}</b></div>
+            <div><span>No. Polisi:</span><b>${esc(_plate)}</b></div>
+            <div><span>VIN / Rangka:</span><b>${esc(_vin)}</b></div>
+         </div>
+      </div>
+      <div class="mcard__footer-back">
+         <div class="mcard__qr-box">${qrSvg(_id, 64)} <span>SCAN VALIDASI</span></div>
+         <div class="mcard__rules">
+            <strong>KETENTUAN KARTU ANGGOTA DOCI:</strong>
+            <ul>
+               <li>Kartu ini adalah tanda pengenal sah anggota resmi Ducati Official Club Indonesia (DOCI) dan terafiliasi dengan Desmo Owners Club Bologna, Italia.</li>
+               <li>Kartu ini tidak dapat dipindahtangankan dan wajib dibawa saat kegiatan resmi turing, track day, serta agenda musyawarah klub.</li>
+               <li>Jika menemukan kartu ini, mohon hubungi Sekretariat DOCI: 0812-8000-DOCI / docindonesia.com.</li>
+            </ul>
+         </div>
+      </div>
+    </div>
+  </div>
+</div>`;
   }
 
   /* ---------- Boot ---------- */
