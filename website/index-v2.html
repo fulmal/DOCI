@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOCI — Komunitas Ducati Indonesia | Daftar Member, Kegiatan & Live Tracking</title>
+  <meta name="description" content="Website resmi Komunitas Ducati Indonesia (DOCI). Daftar menjadi member, ikuti touring & track day, unggah dokumentasi, dan pantau rombongan lewat live tracking.">
+  <meta name="theme-color" content="#D5001C">
+  <meta property="og:title" content="DOCI — Komunitas Ducati Indonesia">
+  <meta property="og:description" content="Daftar member, bayar otomatis, ikuti touring & track day, dan pantau rombongan secara real-time.">
+  <meta property="og:image" content="assets/img/hero.jpg">
+  <link rel="icon" href="assets/img/favicon.png" type="image/png"><link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/doci.css">
+  <link rel="stylesheet" href="assets/css/pages.css?v=ig2">
+  <link rel="preload" as="image" href="assets/img/hero.jpg" fetchpriority="high">
+</head>
+<body data-page="home">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-title" style="min-height: 100vh;">
+      <img class="hero__img" src="assets/img/hero.jpg" alt="Rombongan rider Ducati berformasi di jalan pegunungan saat matahari terbenam" width="1400" height="768" fetchpriority="high">
+      <div class="container hero__inner" style="display:flex; flex-direction:column; justify-content:center; height:100%;">
+        <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center;">
+          <h1 id="hero-title">Satu Keluarga di Atas <em>Roda Dua</em></h1>
+          <p>Komunitas Ducati Indonesia — daftar member dalam 15 menit, bayar otomatis, serta ikuti touring & track day bersama seluruh anggota.</p>
+          <div class="btn-group">
+            <a class="btn btn--lg" href="membership.html">Daftar Menjadi Member</a>
+            <a class="btn btn--lg btn--outline-light" href="kegiatan.html">Lihat Kegiatan</a>
+          </div>
+        </div>
+        
+        <!-- SPONSOR IN HEADER -->
+        <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); padding: 24px; border-radius: 16px; margin-top: 48px; width: 100%;">
+          <span class="overline" style="color:var(--color-slate-500); margin-bottom:16px; display:block; text-align:center;">Sponsor &amp; Partner</span>
+          <div style="display:flex; flex-wrap:wrap; gap:24px 32px; align-items:center; justify-content:center;">
+            <style>.sponsor-logo { width: 160px; max-width: 22%; height: 60px; object-fit: contain; mix-blend-mode: multiply; }</style>
+            <img class="sponsor-logo" src="assets/img/sponsor-pertamina-final.png" alt="Pertamina">
+            <img class="sponsor-logo" src="assets/img/sponsor-new2.png" alt="Pirelli">
+            <img class="sponsor-logo" src="assets/img/sponsor-telkomsel-new.png" alt="Telkomsel">
+            <img class="sponsor-logo" src="assets/img/sponsor-garuda-new.png" alt="Garuda Indonesia">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats" aria-label="Statistik komunitas">
+      <div class="container stats__grid">
+        <div class="stat"><b data-count="1250" data-suffix="+">1.250+</b><span>Member</span></div>
+        <div class="stat"><b data-count="8">8</b><span>Chapter</span></div>
+        <div class="stat"><b data-count="64" data-suffix="+">64+</b><span>Kegiatan / Tahun</span></div>
+        <div class="stat"><b data-count="480000" data-suffix="+">480.000+</b><span>Kilometer Touring</span></div>
+      </div>
+    </section>
+
+    <!-- KEGIATAN TERDEKAT -->
+    <section class="section" aria-labelledby="h-events">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><span class="overline">Kalender</span><h2 id="h-events">Kegiatan Terdekat</h2><p>Touring, riding, track day, dan bakti sosial. Pilih kegiatan, daftar, dan bayar langsung dari HP.</p></div>
+          <a class="btn btn--secondary" href="kegiatan.html">Semua Kegiatan</a>
+        </div>
+        <div class="grid grid-3" id="home-events"></div>
+      </div>
+    </section>
+
+    <!-- FITUR PLATFORM -->
+    <section class="section section--tint" aria-labelledby="h-features">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="overline">Platform Digital DOCI</span><h2 id="h-features">Semua Urusan Klub, Satu Tempat</h2><p>Dirancang mobile-first agar mudah dipakai saat di rumah maupun di jalan.</p></div></div>
+        <div class="grid grid-4" id="home-features"></div>
+      </div>
+    </section>
+
+
+    <!-- BERITA -->
+    <section class="section" aria-labelledby="h-news">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="overline">Kabar DOCI</span><h2 id="h-news">Berita Terbaru</h2></div><a class="btn btn--secondary" href="berita.html">Baca Semua</a></div>
+        <div class="grid grid-3" id="home-news"></div>
+      </div>
+    </section>
+
+    <!-- INSTAGRAM -->
+    <section class="section section--dark ig" aria-labelledby="h-ig">
+      <div class="container ig__inner">
+        <div class="ig__intro reveal">
+          <span class="overline" style="color:#ff6b79">Media Sosial</span>
+          <h2 id="h-ig" style="font-size:var(--text-display);font-weight:800;line-height:1.1">Ikuti Perjalanan Kami di Instagram</h2>
+          <p class="lead" style="color:#c9ccd3">Momen touring, track day, dan kopdar terbaru dari seluruh chapter — langsung dari akun resmi DOCI.</p>
+          <div class="ig__actions">
+            <a class="ig__handle" id="ig-handle" target="_blank" rel="noopener noreferrer"></a>
+            <a class="btn btn--lg btn--outline-light" id="ig-follow" target="_blank" rel="noopener noreferrer"></a>
+          </div>
+        </div>
+        <div class="ig__grid reveal" id="ig-grid"></div>
+      </div>
+    </section>
+
+    <!-- GALERI -->
+    <section class="section section--tint" aria-labelledby="h-gallery">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="overline">Dokumentasi</span><h2 id="h-gallery">Galeri Terbaru</h2><p>Momen dari jalan, sirkuit, dan kegiatan sosial — diunggah oleh member DOCI.</p></div><a class="btn btn--secondary" href="galeri.html">Lihat Galeri</a></div>
+        <div class="gallery" id="home-gallery"></div>
+      </div>
+    </section>
+
+    <div id="join-cta"></div>
+  </main>
+
+  <div id="site-footer"></div>
+  <dialog class="lightbox" id="lightbox" aria-label="Penampil foto"></dialog>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js?v=ig1"></script>
+  <script src="assets/js/gallery.js"></script>
+  <script>
+    (function () {
+      const { D, eventCard, newsCard, icon, joinCta } = DOCI;
+      const upcoming = D.EVENTS.filter(e => e.status === 'terbit' || e.status === 'berlangsung').sort((a, b) => a.start - b.start).slice(0, 3);
+      document.getElementById('home-events').innerHTML = upcoming.map(e => `<div class="reveal">${eventCard(e)}</div>`).join('');
+      document.getElementById('home-news').innerHTML = D.NEWS.slice(0, 3).map(n => `<div class="reveal">${newsCard(n)}</div>`).join('');
+      const feats = [['user', 'Daftar < 15 Menit', 'Verifikasi nomor via OTP, isi form bertahap, lalu bayar. Tanpa antre, tanpa berkas manual.'], ['card', 'Bayar Otomatis', 'Virtual Account, QRIS, e-wallet. Status berubah real-time — tanpa upload bukti transfer.'], ['calendar', 'Kalender Terpadu', 'Semua touring, riding, dan track day tiap chapter dalam satu kalender, lengkap dengan kuota real-time.'], ['image', 'Arsip Dokumentasi', 'Unggah foto & video kegiatan langsung dari HP. Tersimpan rapi dan mudah dicari kembali.']];
+      document.getElementById('home-features').innerHTML = feats.map(f => `<div class="card card--link feature reveal"><span class="feature__icon">${icon(f[0])}</span><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('');
+      document.getElementById('join-cta').innerHTML = joinCta();
+      DOCI.initGallery('#home-gallery', D.GALLERY.slice(0, 8), '#lightbox');
+      const ig = DOCI.SOCIAL.instagram;
+      const igPosts = [['hero.jpg', 'Formasi rider Ducati di jalan pegunungan saat senja'], ['touring.jpg', 'Rombongan touring berhenti di viewpoint'], ['trackday.jpg', 'Suasana track day di sirkuit'], ['social.jpg', 'Kegiatan bakti sosial komunitas'], ['coast.jpg', 'Sunday ride menyusuri pesisir']];
+      document.getElementById('ig-handle').href = ig.url; document.getElementById('ig-handle').innerHTML = icon('instagram', 'icon--24') + '<span>@' + ig.handle + '</span>';
+      const fb = document.getElementById('ig-follow'); fb.href = ig.url; fb.textContent = 'Ikuti di Instagram';
+      document.getElementById('ig-grid').innerHTML = igPosts.map((p, i) => `<a class="ig__tile${i === 0 ? ' ig__tile--feat' : ''}" href="${ig.url}" target="_blank" rel="noopener noreferrer" aria-label="Buka Instagram @${ig.handle}: ${p[1]}"><img src="assets/img/${p[0]}" alt="${p[1]}" loading="lazy" width="800" height="800"><span class="ig__ico" aria-hidden="true">${icon('instagram', 'icon--16')}</span>${i === 0 ? `<span class="ig__tag" aria-hidden="true">Terbaru</span><span class="ig__cap" aria-hidden="true">${p[1]}</span>` : ''}<span class="ig__badge" aria-hidden="true">${icon('instagram', 'icon--24')}</span></a>`).join('');
+    })();
+  </script>
+</body>
+</html>
