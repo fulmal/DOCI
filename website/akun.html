@@ -84,7 +84,10 @@
           amount: 1500000,
           status: 'menunggu',
           expires: new Date(Date.now() + 7 * 86400000).toISOString(),
-          created: new Date().toISOString()
+          created: new Date().toISOString(),
+          type: 'membership',
+          items: [{ label: 'Iuran Keanggotaan Tahunan 2026', amount: 1500000 }],
+          profile: { fullName: u.name, chapter: u.chapter, email: u.email }
         });
         Store.set('invoices', _invs);
       }
