@@ -155,14 +155,50 @@
     }
   };
 
-  /* ---------- Auth (simulasi) ---------- */
+  /* ---------- Auth (simulasi) ----------
+     Prototipe tanpa backend: password disimpan sebagai hash SHA-256 (salt = nomor telepon) di localStorage.
+     Pada produksi wajib hash lambat (bcrypt/argon2) dan verifikasi di server. */
+  const sha256 = (() => {
+    const K = [], H0 = [];
+    for (let n = 2, i = 0; i < 64; n++) {
+      let pr = true; for (let d = 2; d * d <= n; d++) if (n % d === 0) { pr = false; break; }
+      if (pr) { if (i < 8) H0[i] = Math.floor((Math.pow(n, 1 / 2) % 1) * 4294967296) | 0; K[i] = Math.floor((Math.pow(n, 1 / 3) % 1) * 4294967296) | 0; i++; }
+    }
+    const rr = (x, n) => (x >>> n) | (x << (32 - n));
+    return (str) => {
+      const b = Array.from(new TextEncoder().encode(str)), l = b.length * 8;
+      b.push(0x80); while (b.length % 64 !== 56) b.push(0);
+      for (let i = 7; i >= 0; i--) b.push(i > 3 ? 0 : (l >>> (i * 8)) & 255);
+      const h = H0.slice(), w = new Array(64);
+      for (let o = 0; o < b.length; o += 64) {
+        for (let i = 0; i < 16; i++) w[i] = (b[o + i * 4] << 24) | (b[o + i * 4 + 1] << 16) | (b[o + i * 4 + 2] << 8) | b[o + i * 4 + 3];
+        for (let i = 16; i < 64; i++) { const s0 = rr(w[i - 15], 7) ^ rr(w[i - 15], 18) ^ (w[i - 15] >>> 3), s1 = rr(w[i - 2], 17) ^ rr(w[i - 2], 19) ^ (w[i - 2] >>> 10); w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0; }
+        let [a, bb, c, d, e, f, g, hh] = h;
+        for (let i = 0; i < 64; i++) { const t1 = (hh + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0, t2 = ((rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & bb) ^ (a & c) ^ (bb & c))) | 0; hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = bb; bb = a; a = (t1 + t2) | 0; }
+        [a, bb, c, d, e, f, g, hh].forEach((v, i) => { h[i] = (h[i] + v) | 0; });
+      }
+      return h.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+    };
+  })();
+  const DEMO_PASSWORD = 'doci1234';
   const Auth = {
     current() { return Store.get('session'); },
-    users() { return Object.assign({}, D.DEMO_USERS, Store.get('users', {})); },
+    hashPw(phone, pw) { return sha256('doci|' + phone + '|' + pw); },
+    users() {
+      const demo = {}; Object.keys(D.DEMO_USERS).forEach(p => { demo[p] = Object.assign({ pwHash: Auth.hashPw(p, DEMO_PASSWORD) }, D.DEMO_USERS[p]); });
+      return Object.assign({}, demo, Store.get('users', {}));
+    },
+    /* true jika nomor terdaftar & password cocok */
+    checkPw(phone, pw) { const u = Auth.users()[phone]; return !!(u && u.pwHash && u.pwHash === Auth.hashPw(phone, pw)); },
+    setPassword(phone, pw) {
+      const u = Auth.users()[phone]; if (!u) return false;
+      const users = Store.get('users', {}); users[phone] = Object.assign({}, u, { pwHash: Auth.hashPw(phone, pw) }); Store.set('users', users);
+      Audit.log('ubah password', 'Akun ' + phone); return true;
+    },
     login(phone) {
       const u = Auth.users()[phone];
       if (!u) return null;
-      const s = Object.assign({ phone }, u);
+      const s = Object.assign({ phone }, u); delete s.pwHash;
       Store.set('session', s);
       Audit.log('login', 'Sesi ' + phone);
       return s;

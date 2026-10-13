@@ -30,7 +30,7 @@
     </div>
   </main>
   <div id="site-footer"></div>
-  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/otp.js?v=otp3"></script>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js?v=pw1"></script><script src="assets/js/otp.js?v=otp3"></script>
   <script>
     (function () {
       const { D, icon, esc, fmt, Store, Auth, toast, OtpFlow, Audit, confirmDialog } = DOCI;
@@ -115,6 +115,9 @@
           F('emergName', 'Nama kontak', { value: d().emergName || '', ph: 'mis. Dinda' }) +
           `<div class="form-row form-row--2"><div class="field"><label for="emergRel">Status hubungan<span class="req" aria-hidden="true">*</span></label><select class="select" id="emergRel" name="emergRel" required aria-describedby="emergRel-e"><option value="">Pilih…</option>${['Istri', 'Suami', 'Orang Tua', 'Saudara', 'Anak', 'Teman', 'Lainnya'].map(v => `<option value="${v}" ${d().emergRel === v ? 'selected' : ''}>${v}</option>`).join('')}</select><span class="error-text" id="emergRel-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>` +
           F('emergPhone', 'Nomor telepon', { type: 'tel', value: d().emergPhone || '', ph: 'mis. 08123456789' }) + `</div>` +
+          `<h3 style="margin:24px 0 16px;font-size:17px;border-top:1px solid var(--color-line);padding-top:16px">Password Akun</h3>` +
+          `<div class="form-row form-row--2"><div class="field"><label for="pw1">Password<span class="req" aria-hidden="true">*</span></label><input class="input" id="pw1" type="password" autocomplete="new-password" placeholder="${d().pwHash ? 'Tersimpan — isi untuk mengganti' : 'Min. 8 karakter'}" aria-describedby="pw1-h pw1-e"><span class="help" id="pw1-h">Kombinasi huruf dan angka. Dipakai untuk masuk bersama nomor telepon.</span><span class="error-text" id="pw1-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>` +
+          `<div class="field"><label for="pw2">Ulangi password<span class="req" aria-hidden="true">*</span></label><input class="input" id="pw2" type="password" autocomplete="new-password" aria-describedby="pw2-e"><span class="error-text" id="pw2-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div></div>` +
           `<h3 style="margin:24px 0 16px;font-size:17px;border-top:1px solid var(--color-line);padding-top:16px">Lainnya</h3>` +
           `<div class="field"><label for="photo">Foto profil <span class="muted small">(opsional)</span></label><input class="input" type="file" id="photo" accept="image/png,image/jpeg,image/webp"><span class="help">JPG/PNG/WebP, maks 5 MB.</span></div>` + nav();
         wireNav(() => {
@@ -128,6 +131,13 @@
           ok = req('emergRel', 'Pilih status hubungan.') && ok;
           ok = req('emergPhone', 'Nomor telepon kontak darurat wajib diisi.') && ok;
           const em = form.querySelector('#email'); if (em.value && !/^\S+@\S+\.\S+$/.test(em.value)) { fieldErr(em, 'Format email belum sesuai, mis. nama@email.com.'); ok = false; }
+          /* password: hash disimpan di draft (bukan teks asli); kosong diperbolehkan hanya jika sudah pernah diisi */
+          const p1 = form.querySelector('#pw1'), p2 = form.querySelector('#pw2');
+          if (p1.value || p2.value || !d().pwHash) {
+            if (!(p1.value.length >= 8 && /[A-Za-z]/.test(p1.value) && /\d/.test(p1.value))) { fieldErr(p1, p1.value ? 'Password minimal 8 karakter dan harus kombinasi huruf dan angka.' : 'Password wajib diisi.'); ok = false; }
+            else if (p2.value !== p1.value) { fieldErr(p2, 'Ulangi password dengan sama persis.'); ok = false; }
+            else d().pwHash = Auth.hashPw(draft.phone, p1.value);
+          }
           return ok;
         });
       }

@@ -3,13 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Masuk — DOCI | Login dengan Nomor Telepon & OTP</title>
-  <meta name="description" content="Masuk ke Area Member DOCI dengan nomor telepon dan kode OTP. Tanpa password.">
+  <title>Masuk — DOCI | Login dengan Nomor Telepon &amp; Password</title>
+  <meta name="description" content="Masuk ke Area Member DOCI dengan nomor telepon dan password.">
   <meta name="theme-color" content="#D5001C">
   <link rel="icon" href="assets/img/favicon.png" type="image/png"><link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css">
+  <style>
+    .pw-field { position: relative; }
+    .pw-field .input { padding-right: 92px; }
+    .pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 0; padding: 8px 10px; font: 600 13px var(--font-body, inherit); color: var(--color-primary, #D5001C); cursor: pointer; border-radius: 8px; }
+    .pw-toggle:hover { background: rgba(213, 0, 28, .08); }
+    .link-btn { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--color-primary, #D5001C); text-decoration: underline; cursor: pointer; }
+  </style>
 </head>
 <body data-page="masuk">
   <div id="site-header"></div>
@@ -20,35 +27,118 @@
     </aside>
     <div class="auth-main"><div class="container auth-box">
       <div class="card">
-        <h1 style="font-size:26px">Masuk ke DOCI</h1>
-        <p class="muted">Gunakan nomor telepon yang terdaftar. Kami kirim kode OTP — tanpa password.</p>
-        <div id="otp-root"></div>
+        <h1 style="font-size:26px" id="auth-title">Masuk ke DOCI</h1>
+        <p class="muted" id="auth-desc">Masukkan nomor telepon yang terdaftar dan password Anda.</p>
+        <div id="auth-root"></div>
         <hr>
         <p class="text-center small" style="margin:0">Belum jadi member? <a href="membership.html"><b>Daftar Menjadi Member</b></a></p>
       </div>
       <div class="banner banner--demo demo-hint small">
         <span id="di"></span>
-        <div><b>Akun demo (kode OTP: <code>123456</code>)</b>
+        <div><b>Akun demo (password: <code>doci1234</code>)</b>
           <code>0812-0000-0001</code> Member · <code>0812-0000-0002</code> Admin · <code>0812-0000-0003</code> Superadmin</div>
       </div>
     </div></div>
   </main>
   <div id="site-footer"></div>
-  <script src="assets/js/data.js"></script><script src="assets/js/app.js"></script><script src="assets/js/otp.js?v=otp3"></script>
+  <script src="assets/js/data.js"></script><script src="assets/js/app.js?v=pw1"></script><script src="assets/js/otp.js?v=otp3"></script>
   <script>
     (function () {
-      const { OtpFlow, Auth, toast, Store, icon } = DOCI;
+      const { OtpFlow, Auth, toast, Store, icon, normPhone, esc, fmt } = DOCI;
       document.getElementById('di').innerHTML = icon('shield');
       if (Auth.current()) { location.replace('akun.html'); return; }
       const next = new URLSearchParams(location.search).get('next') || 'akun.html';
-      OtpFlow({
-        root: document.getElementById('otp-root'), mode: 'login',
-        onVerified(phone) {
-          const s = Auth.login(phone);
-          if (!Store.get('device_' + phone)) { Store.set('device_' + phone, 1); toast({ type: 'info', title: 'Notifikasi keamanan', msg: 'Login dari perangkat baru. Pemberitahuan dikirim ke WhatsApp terdaftar.', timeout: 6000 }); }
-          setTimeout(() => { location.href = decodeURIComponent(next).replace(/^\/+/, ''); }, s ? 400 : 0);
-        }
-      });
+      const root = document.getElementById('auth-root'), title = document.getElementById('auth-title'), desc = document.getElementById('auth-desc');
+      const WINDOW = 15 * 60 * 1000, MAX_FAILS = 5;
+
+      /* Batas percobaan salah per nomor: 5× salah → diblokir 15 menit (tetap berlaku setelah refresh) */
+      const map = (k) => { const v = Store.get(k, {}); return v && typeof v === 'object' ? v : {}; };
+      const blockedUntil = (p) => { const b = map('pw_block')[p]; return b && b > Date.now() ? b : 0; };
+      const failsOf = (p) => { const r = map('pw_fails')[p]; return r && Date.now() - r.at < WINDOW ? r.n : 0; };
+      const setFails = (p, n) => { const m = map('pw_fails'); if (n) m[p] = { n, at: Date.now() }; else delete m[p]; Store.set('pw_fails', m); };
+      const setBlock = (p) => { const m = map('pw_block'); m[p] = Date.now() + WINDOW; Store.set('pw_block', m); };
+      const pwRule = (v) => v.length >= 8 && /[A-Za-z]/.test(v) && /\d/.test(v);
+
+      function finish(phone) {
+        const s = Auth.login(phone);
+        if (!Store.get('device_' + phone)) { Store.set('device_' + phone, 1); toast({ type: 'info', title: 'Notifikasi keamanan', msg: 'Login dari perangkat baru. Pemberitahuan dikirim ke WhatsApp terdaftar.', timeout: 6000 }); }
+        setTimeout(() => { location.href = decodeURIComponent(next).replace(/^\/+/, ''); }, s ? 400 : 0);
+      }
+
+      const pwInput = (id, label, ac) => `
+        <div class="field"><label for="${id}">${label}<span class="req" aria-hidden="true">*</span></label>
+          <div class="pw-field"><input class="input" id="${id}" type="password" autocomplete="${ac}" required aria-describedby="${id}-e"><button class="pw-toggle" type="button" data-toggle="${id}" aria-label="Tampilkan password">Tampilkan</button></div>
+          <span class="error-text" id="${id}-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>`;
+      const wireToggles = () => root.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => {
+        const i = root.querySelector('#' + b.dataset.toggle), show = i.type === 'password'; i.type = show ? 'text' : 'password'; b.textContent = show ? 'Sembunyikan' : 'Tampilkan'; b.setAttribute('aria-label', show ? 'Sembunyikan password' : 'Tampilkan password');
+      }));
+      const setErr = (el, msg) => { const f = el.closest('.field'); f.classList.toggle('has-error', !!msg); const e = f.querySelector('.error-text span'); if (e) e.innerHTML = msg || ''; el.setAttribute('aria-invalid', !!msg); };
+
+      /* ---- tampilan 1: nomor + password ---- */
+      function loginView(raw = '', banner = '') {
+        title.textContent = 'Masuk ke DOCI'; desc.textContent = 'Masukkan nomor telepon yang terdaftar dan password Anda.';
+        root.innerHTML = `<form id="login-form" novalidate class="stack">
+          ${banner ? `<div class="banner banner--danger" role="alert">${icon('lock')}<div>${banner}</div></div>` : ''}
+          <div class="field"><label for="phone">Nomor telepon (WhatsApp)<span class="req" aria-hidden="true">*</span></label>
+            <div class="phone-field"><span class="phone-prefix"><span class="flag-id" aria-hidden="true"></span>+62</span>
+              <input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="username" placeholder="0812 3456 7890" value="${esc(raw)}" aria-describedby="phone-e" required></div>
+            <span class="error-text" id="phone-e" role="alert">${icon('alert', 'icon--16')}<span></span></span></div>
+          ${pwInput('pw', 'Password', 'current-password')}
+          <button class="btn btn--block btn--lg" type="submit" id="login-btn">Masuk</button>
+          <p class="text-center small" style="margin:0"><button type="button" class="link-btn" id="forgot">Lupa password?</button></p>
+        </form>`;
+        wireToggles();
+        const f = root.querySelector('#login-form'), ph = f.querySelector('#phone'), pw = f.querySelector('#pw');
+        [ph, pw].forEach(i => i.addEventListener('input', () => setErr(i, '')));
+        f.querySelector('#forgot').addEventListener('click', forgotView);
+        f.addEventListener('submit', (e) => {
+          e.preventDefault();
+          setErr(ph, ''); setErr(pw, '');
+          const txt = ph.value.trim(); let bad = false;
+          if (!txt) { setErr(ph, 'Nomor telepon wajib diisi.'); bad = true; }
+          else if (/[^\d\s+().-]/.test(txt)) { setErr(ph, 'Nomor hanya boleh berisi angka.'); bad = true; }
+          else if (!normPhone(txt)) { setErr(ph, 'Nomor belum sesuai format. Gunakan 08xx atau +628xx.'); bad = true; }
+          if (!pw.value) { setErr(pw, 'Password wajib diisi.'); bad = true; }
+          if (bad) { (f.querySelector('.has-error input') || ph).focus(); return; }
+          const p = normPhone(txt);
+          if (blockedUntil(p)) return loginView(ph.value, `<b>Login diblokir sementara</b>Terlalu banyak percobaan salah. Coba lagi pukul ${fmt.time(new Date(blockedUntil(p)))} atau gunakan “Lupa password”.`);
+          const btn = f.querySelector('#login-btn'); btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = 'Memeriksa…';
+          setTimeout(() => {
+            if (Auth.checkPw(p, pw.value)) { setFails(p, 0); finish(p); return; }
+            const n = failsOf(p) + 1; setFails(p, n);
+            if (n >= MAX_FAILS) { setBlock(p); setFails(p, 0); return loginView(ph.value, `<b>Login diblokir sementara</b>Terlalu banyak percobaan salah. Coba lagi dalam 15 menit atau gunakan “Lupa password”.`); }
+            loginView(ph.value, `<b>Nomor atau password salah.</b>Periksa kembali ya (sisa ${MAX_FAILS - n} percobaan).`);
+            root.querySelector('#pw').focus();
+          }, 400);
+        });
+        (raw ? pw : ph).focus();
+      }
+
+      /* ---- tampilan 2: lupa password → verifikasi OTP → password baru ---- */
+      function forgotView() {
+        title.textContent = 'Lupa Password'; desc.textContent = 'Verifikasi nomor Anda dengan kode OTP, lalu buat password baru.';
+        root.innerHTML = '<div id="otp-root"></div><p class="text-center small" style="margin:16px 0 0"><button type="button" class="link-btn" id="back">Kembali ke halaman masuk</button></p>';
+        root.querySelector('#back').addEventListener('click', () => loginView());
+        OtpFlow({ root: root.querySelector('#otp-root'), mode: 'login', onVerified: resetView });
+      }
+      function resetView(phone) {
+        title.textContent = 'Buat Password Baru'; desc.textContent = 'Minimal 8 karakter, kombinasi huruf dan angka.';
+        root.innerHTML = `<form id="reset-form" novalidate class="stack">${pwInput('np', 'Password baru', 'new-password')}${pwInput('np2', 'Ulangi password baru', 'new-password')}<button class="btn btn--block btn--lg" type="submit">Simpan &amp; Masuk</button></form>`;
+        wireToggles();
+        const f = root.querySelector('#reset-form'), a = f.querySelector('#np'), b = f.querySelector('#np2');
+        [a, b].forEach(i => i.addEventListener('input', () => setErr(i, '')));
+        f.addEventListener('submit', (e) => {
+          e.preventDefault(); let ok = true;
+          if (!pwRule(a.value)) { setErr(a, 'Password minimal 8 karakter dan harus kombinasi huruf dan angka.'); ok = false; }
+          if (b.value !== a.value) { setErr(b, 'Ulangi password dengan sama persis.'); ok = false; }
+          if (!ok) { (f.querySelector('.has-error input')).focus(); return; }
+          Auth.setPassword(phone, a.value); setFails(phone, 0);
+          toast({ type: 'success', msg: 'Password berhasil diubah.' }); finish(phone);
+        });
+        a.focus();
+      }
+
+      loginView();
     })();
   </script>
 </body>
