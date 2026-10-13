@@ -489,7 +489,6 @@
     <div class="mcard mcard--back" role="img" aria-label="Kartu member belakang">
       <div class="mcard__header mcard__header--back">
          ${logo(true, '#')}
-         <div class="mcard__qr-box">${qrSvg(_id, 64)} <span>SCAN<br>VALIDASI</span></div>
       </div>
       <div class="mcard__panels">
          <div class="mcard__panel">
@@ -504,6 +503,7 @@
             <div><span>No. Polisi:</span><b>${esc(_plate)}</b></div>
             <div><span>VIN / Rangka:</span><b>${esc(_vin)}</b></div>
          </div>
+          <div class="mcard__qr-box" aria-label="QR validasi kartu">${qrSvg(_id, 64)}</div>
       </div>
       <div class="mcard__footer-back">
          <div class="mcard__rules">

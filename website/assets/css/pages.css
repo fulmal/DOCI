@@ -282,8 +282,8 @@ dialog.lightbox[open] { animation: fade-in var(--duration-base) ease-out; displa
 .mcard__panel div b { font-weight: 700; text-align: right; }
 
 .mcard__footer-back { display: flex; gap: 16px; align-items: stretch; margin-top: 8px; }
-.mcard__qr-box { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; font-size: 1.8cqw; font-weight: 800; background: #fff; color: #000; padding: 4px 8px 4px 4px; border-radius: 8px; flex: none; line-height: 1.15; }
-.mcard__qr-box svg { width: 10cqw; height: 10cqw; display: block; }
+.mcard__qr-box { display: flex; align-items: center; justify-content: center; background: #fff; padding: 6px; border-radius: 8px; flex: 0 0 20cqw; width: 20cqw; align-self: stretch; box-sizing: border-box; }
+.mcard__qr-box svg { width: 100%; height: auto; max-height: 100%; aspect-ratio: 1; display: block; }
 .mcard__rules { flex: 1; font-size: 2cqw; line-height: 1.35; opacity: 0.9; }
 .mcard__rules strong { font-size: 2.4cqw; font-weight: 800; display: block; margin-bottom: 4px; }
 .mcard__rules ul { margin: 0; padding-left: 14px; }
