@@ -333,6 +333,9 @@
           setTimeout(() => { location.href = 'bayar.html?inv=' + encodeURIComponent(inv.id); }, 500);
         };
       }
+      /* Tautan referensi (?ref=KODE6) dari teman: isi otomatis kode referensi */
+      { const ref = (new URLSearchParams(location.search).get('ref') || '').trim().toUpperCase();
+        if (/^[A-Z0-9]{6}$/.test(ref) && /[A-Z]/.test(ref) && /[0-9]/.test(ref)) { draft.data.refCode = ref; if (draft.step > 0 && !draft.phone) draft.step = 0; save(); toast({ type: 'success', msg: 'Kode referensi ' + ref + ' dari teman Anda sudah terisi.' }); } }
       if (draft.step > 1 && !draft.phone) draft.step = 1;
       if (draft.step > 0 && !draft.data.refCode) draft.step = 0;
       render();
