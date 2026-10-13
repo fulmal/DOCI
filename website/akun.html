@@ -12,8 +12,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Open+Sans:wght@400;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/doci.css"><link rel="stylesheet" href="assets/css/pages.css?v=ig5">
   <style>
-    @media print { body.print-card > *:not(main) { display: none !important; } body.print-card main > *:not(#print-zone) { display: none !important; }
-      body.print-card #print-zone { display: flex !important; justify-content: center; padding-top: 30mm; } body.print-card .account-head, body.print-card .bottom-nav { display: none !important; } }
+    @page { size: A4 portrait; margin: 10mm; }
+    @media print {
+      body.print-card > *:not(main) { display: none !important; } body.print-card main > *:not(#print-zone) { display: none !important; }
+      body.print-card, body.print-card * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body.print-card #print-zone { display: flex !important; justify-content: center; padding-top: 6mm; } body.print-card .account-head, body.print-card .bottom-nav { display: none !important; }
+      /* Matikan efek flip 3D saat cetak: tampilkan sisi depan lalu belakang secara berurutan */
+      body.print-card #print-zone .mcard-flip { perspective: none; aspect-ratio: auto; width: 480px; max-width: none; height: auto; cursor: auto; }
+      body.print-card #print-zone .mcard-flip__inner { transform: none !important; transform-style: flat; height: auto; display: flex; flex-direction: column; gap: 10mm; }
+      body.print-card #print-zone .mcard { position: relative; width: 480px; height: auto; aspect-ratio: 1.586 / 1; transform: none !important; backface-visibility: visible; -webkit-backface-visibility: visible; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
+    }
     #print-zone { display: none; }
     .view[hidden] { display: none; }
     .reg-card { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--color-line); flex-wrap: wrap; }
