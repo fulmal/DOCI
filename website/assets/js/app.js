@@ -257,7 +257,6 @@
     { label: 'Kegiatan', key: 'kegiatan', items: [['Kalender Kegiatan', 'kegiatan.html', 'calendar'], ['Touring', 'kegiatan.html?cat=touring&view=agenda', 'navigation'], ['Riding & Track Day', 'kegiatan.html?cat=riding&view=agenda', 'bike'], ['Sosial', 'kegiatan.html?cat=sosial&view=agenda', 'heart']] },
     { label: 'Berita', key: 'berita', href: 'berita.html' },
     { label: 'Galeri', key: 'galeri', href: 'galeri.html' },
-    { label: 'Chapter', key: 'chapter', href: 'chapter.html' },
     { label: 'Kontak', key: 'kontak', href: 'kontak.html' }
   ];
 
@@ -369,7 +368,7 @@
           <div class="footer-social"><a href="${SOCIAL.instagram.url}" target="_blank" rel="noopener noreferrer" aria-label="Instagram DOCI (@${SOCIAL.instagram.handle})">${icon('instagram', 'icon--24')}</a><a href="#" aria-label="Facebook DOCI">${icon('facebook', 'icon--24')}</a><a href="#" aria-label="YouTube DOCI">${icon('youtube', 'icon--24')}</a></div>
         </div>
         ${g('Kontak', `<ul class="footer-contact"><li>${icon('pin', 'icon--16')}<span>Sekretariat DOCI<br>Jakarta, Indonesia<br><span style="opacity:.7">(alamat final menyusul)</span></span></li><li>${icon('phone', 'icon--16')}<span>+62 812-0000-0000</span></li><li>${icon('mail', 'icon--16')}<a href="mailto:halo@doci.example">halo@doci.example</a></li></ul>`)}
-        ${g('Menu', `<ul><li><a href="tentang.html">Tentang DOCI</a></li><li><a href="kegiatan.html">Kalender Kegiatan</a></li><li><a href="berita.html">Berita</a></li><li><a href="galeri.html">Galeri</a></li><li><a href="chapter.html">Chapter</a></li><li><a href="dokumen.html">AD/ART & Dokumen</a></li></ul>`)}
+        ${g('Menu', `<ul><li><a href="tentang.html">Tentang DOCI</a></li><li><a href="kegiatan.html">Kalender Kegiatan</a></li><li><a href="berita.html">Berita</a></li><li><a href="galeri.html">Galeri</a></li><li><a href="dokumen.html">AD/ART & Dokumen</a></li></ul>`)}
         ${g('Keanggotaan', `<ul><li><a href="membership.html">Join Us</a></li><li><a href="membership.html#benefit">Benefit Member</a></li><li><a href="masuk.html">Masuk</a></li><li><a href="akun.html">Area Member</a></li><li><a href="admin.html">Admin Panel</a></li></ul>`)}
         ${g('Gabung Newsletter', `<p style="font-size:14px;margin:0 0 4px">Kabar kegiatan terbaru langsung ke WhatsApp/email Anda.</p><form class="newsletter" data-newsletter><label class="sr-only" for="nl-email">Email atau nomor WhatsApp</label><input class="input" id="nl-email" type="text" placeholder="Email / nomor WhatsApp" required><button class="btn btn--sm" type="submit">Daftar</button></form>`)}
       </div>
