@@ -473,16 +473,12 @@
          <div class="mcard__details">
             <div class="mcard__name">${esc(name)}</div>
             <div class="mcard__nra">${_id}</div>
-            <div class="mcard__grid">
-               <div>CHAPTER:<br><b>${esc(chapter)}</b></div>
+            <div class="mcard__grid mcard__grid--status">
                <div>STATUS ANGGOTA:<br><b class="text-green">Active Member</b></div>
-               <div>DUCATI ID (DOC):<br><b>${_docId}</b></div>
-               <div>MODEL MOTOR:<br><b>${esc(_bike)}</b></div>
+               <div>BERLAKU S/D:<br><b>${fmt.dateShort(until)}</b></div>
+               <div class="mcard__qr-box" aria-label="QR validasi kartu">${qrSvg(_id, 64)}</div>
             </div>
          </div>
-      </div>
-      <div class="mcard__footer">
-         BERLAKU S/D : ${fmt.dateShort(until)}
       </div>
     </div>
     
@@ -503,7 +499,6 @@
             <div><span>No. Polisi:</span><b>${esc(_plate)}</b></div>
             <div><span>VIN / Rangka:</span><b>${esc(_vin)}</b></div>
          </div>
-          <div class="mcard__qr-box" aria-label="QR validasi kartu">${qrSvg(_id, 64)}</div>
       </div>
       <div class="mcard__footer-back">
          <div class="mcard__rules">
