@@ -145,17 +145,16 @@
               <div class="row" style="gap:16px;flex-wrap:wrap;align-items:center">
                 <span class="feature__icon" style="width:52px;height:52px;border-radius:14px;flex:none">${icon('share', 'icon--24')}</span>
                 <div class="grow" style="min-width:220px"><h2 class="card-title" id="h-rf" style="margin:0 0 4px">Bagikan Referensi ke Teman</h2>
-                  <p class="small muted" style="margin:0">Kirim tautan lewat WhatsApp. Teman Anda yang mendaftar lewat tautan ini otomatis memakai kode referensi Anda: <b class="mono" id="ref-code" style="letter-spacing:.12em"></b></p></div>
+                  <p class="small muted" style="margin:0">Kirim tautan lewat WhatsApp. Setiap tautan membawa kode referensi unik, jadi teman Anda tidak perlu mengisi kodenya sendiri.</p></div>
                 <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" id="ref-wa" type="button">${icon('share', 'icon--16')}Kirim ke WhatsApp</button><button class="btn btn--ghost" id="ref-copy" type="button">Salin tautan</button></div>
               </div></section>
           </div>`;
         /* ---------- Referensi teman: bagikan tautan via WhatsApp ---------- */
-        const refCode = (() => { const s = (u.memberId || '') + (u.phone || ''); let x = 2166136261; for (const ch of s) { x ^= ch.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; } const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ', N = '23456789'; let out = ''; for (let i = 0; i < 6; i++) { x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; const p = i % 2 ? N : A; out += p[x % p.length]; } return out; })();
-        const refLink = new URL('daftar.html?ref=' + refCode, location.href).href;
-        $('#ref-code').textContent = refCode;
-        const refMsg = `Halo! Saya ${u.name}, member komunitas Ducati Indonesia (DOCI). Yuk gabung bareng kami! Daftar lewat tautan ini, kode referensi dari saya sudah otomatis terisi:\n${refLink}\n\nKode referensi: ${refCode}`;
-        $('#ref-wa').onclick = () => { window.open('https://wa.me/?text=' + encodeURIComponent(refMsg), '_blank', 'noopener'); Audit.log('bagikan referensi', refCode, null, 'whatsapp'); };
-        $('#ref-copy').onclick = async () => { try { await navigator.clipboard.writeText(refLink); toast({ type: 'success', msg: 'Tautan referensi disalin.' }); } catch { toast({ type: 'error', msg: 'Gagal menyalin. Salin manual: ' + refLink }); } };
+        /* Kode referensi unik & dinamis: dibuat baru setiap kali dibagikan, dicatat per member */
+        const newRef = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ', N = '23456789', used = Store.get('refs', []); let code; do { const r = crypto.getRandomValues(new Uint32Array(6)); code = [...r].map((x, i) => (i % 2 ? N : A)[x % (i % 2 ? N : A).length]).join(''); } while (used.some(c => c.code === code)); used.push({ code, phone: u.phone, created: new Date().toISOString(), used: false }); Store.set('refs', used); return code; };
+        const refShare = () => { const code = newRef(), link = new URL('daftar.html?ref=' + code, location.href).href; return { code, link }; };
+        $('#ref-wa').onclick = () => { const { code, link } = refShare(); const msg = `Halo! Saya ${u.name}, member komunitas Ducati Indonesia (DOCI). Yuk gabung bareng kami! Daftar lewat tautan ini, kode referensi dari saya sudah otomatis terisi:\n${link}\n\nKode referensi: ${code}`; window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener'); Audit.log('bagikan referensi', code, null, 'whatsapp'); };
+        $('#ref-copy').onclick = async () => { const { code, link } = refShare(); try { await navigator.clipboard.writeText(link); toast({ type: 'success', msg: 'Tautan referensi disalin.' }); Audit.log('bagikan referensi', code, null, 'salin'); } catch { toast({ type: 'error', msg: 'Gagal menyalin. Salin manual: ' + link }); } };
       }
 
       function kegiatan() {
