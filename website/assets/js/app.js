@@ -472,7 +472,7 @@
          <div class="mcard__photo"><img src="${photoUrl}" alt="Foto"></div>
          <div class="mcard__details">
             <div class="mcard__name">${esc(name)}</div>
-            <div class="mcard__nra">NRA : ${_id}</div>
+            <div class="mcard__nra">${_id}</div>
             <div class="mcard__grid">
                <div>CHAPTER:<br><b>${esc(chapter)}</b></div>
                <div>STATUS ANGGOTA:<br><b class="text-green">Active Member</b></div>
