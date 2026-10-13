@@ -242,13 +242,14 @@
 
   /* Sponsor resmi & penetapan sponsor per kegiatan (contoh). Kegiatan buatan admin memakai default per kategori. */
   const SPONSORS = {
+    mandiri: { name: 'Bank Mandiri', logo: 'assets/img/sponsor-mandiri.png' },
     pertamina: { name: 'Pertamina', logo: 'assets/img/sponsor-pertamina-final.png' },
     pirelli: { name: 'Pirelli', logo: 'assets/img/sponsor-new2.png' },
     telkomsel: { name: 'Telkomsel', logo: 'assets/img/sponsor-telkomsel-new.png' },
     garuda: { name: 'Garuda Indonesia', logo: 'assets/img/sponsor-garuda-new.png' }
   };
-  const SPONSOR_BY_CAT = { touring: ['pertamina', 'telkomsel'], riding: ['pirelli', 'pertamina'], trackday: ['pirelli', 'pertamina', 'telkomsel'], meeting: ['telkomsel'], sosial: ['pertamina'] };
-  const SPONSOR_BY_EVENT = { 'touring-jkt-bdg': ['pertamina', 'pirelli', 'telkomsel'], 'trackday-series-3': ['pirelli', 'pertamina', 'telkomsel', 'garuda'], 'touring-bali': ['garuda', 'pertamina', 'telkomsel'] };
+  const SPONSOR_BY_CAT = { touring: ['mandiri', 'pertamina', 'telkomsel'], riding: ['mandiri', 'pirelli', 'pertamina'], trackday: ['mandiri', 'pirelli', 'pertamina', 'telkomsel'], meeting: ['mandiri', 'telkomsel'], sosial: ['mandiri', 'pertamina'] };
+  const SPONSOR_BY_EVENT = { 'touring-jkt-bdg': ['mandiri', 'pertamina', 'pirelli', 'telkomsel'], 'trackday-series-3': ['mandiri', 'pirelli', 'pertamina', 'telkomsel', 'garuda'], 'touring-bali': ['garuda', 'mandiri', 'pertamina', 'telkomsel'] };
   EVENTS.forEach(e => { e.sponsors = e.sponsors || SPONSOR_BY_EVENT[e.id] || SPONSOR_BY_CAT[e.cat] || []; });
 
   window.DOCI_DATA = { TODAY, day, CATEGORIES, CHAPTERS, EVENTS, NEWS, GALLERY, FAQ, BENEFITS, DOCS, MEMBERS, TX, MODERATION, PERMISSIONS, DEMO_USERS, METHODS, FIRST, LAST, BIKES, SPONSORS, SPONSOR_BY_CAT };
