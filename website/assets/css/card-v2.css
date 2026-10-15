@@ -1,0 +1,91 @@
+/* ==========================================================================
+   DOCI — Kartu Member v2 "Carbon Edition"
+   Desain alternatif. Tidak menyentuh .mcard* di pages.css.
+   Seluruh ukuran memakai cqw sehingga kartu skalanya konsisten.
+   ========================================================================== */
+.xcard-flip { perspective: 1200px; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 1.586 / 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.xcard-flip__inner { position: relative; width: 100%; height: 100%; transition: transform .7s cubic-bezier(.4, 0, .2, 1); transform-style: preserve-3d; }
+.xcard-flip.is-flipped .xcard-flip__inner { transform: rotateY(180deg); }
+.xcard-flip:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 4px; border-radius: 22px; }
+
+.xcard {
+  --x-red: #E2001A; --x-red-deep: #8E0012; --x-gold: #D8B56A; --x-ink: #0B0B0D;
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 18px; overflow: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; container-type: inline-size; isolation: isolate;
+  box-shadow: 0 22px 44px -12px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .06) inset;
+  font-family: var(--font-body, 'Open Sans', sans-serif);
+}
+.xcard > * { position: relative; z-index: 2; }
+.xcard--back { transform: rotateY(180deg); }
+
+/* ---------- DEPAN & BELAKANG: satu background merah dominan ---------- */
+.xcard--front, .xcard--back {
+  color: #fff;
+  background:
+    linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .10) 48%, transparent 58%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .03) 0 2.5px, transparent 2.5px 5px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .12) 0 2.5px, transparent 2.5px 5px),
+    linear-gradient(90deg, rgba(226, 0, 26, .12) 0%, rgba(226, 0, 26, .5) 100%),
+    #C60018 url('../img/card-bg.png') center / cover no-repeat;
+}
+.xcard__in { position: absolute !important; inset: 0; z-index: 2; padding: 5.2cqw 5.6cqw 4.6cqw; display: flex; flex-direction: column; justify-content: space-between; }
+/* goresan merah diagonal */
+.xcard__stripe { position: absolute !important; z-index: 1 !important; left: -8cqw; bottom: -7cqw; width: 70cqw; height: 9cqw; background: linear-gradient(90deg, #050506, #1b1b1f 60%, transparent); transform: rotate(-14deg); transform-origin: left bottom; opacity: .92; }
+.xcard__stripe::after { content: ""; position: absolute; left: 0; right: 0; top: -1.6cqw; height: .45cqw; background: linear-gradient(90deg, var(--x-gold), transparent 85%); }
+
+
+.xcard__top { display: flex; justify-content: space-between; align-items: center; }
+.xcard__top .logo { display: block; }
+.xcard__top .logo-img--full { display: block; height: 7cqw; width: auto; max-width: 38cqw; }
+.xcard__top .logo-img--square { display: none; }
+.xcard__tier {
+  font-family: var(--font-display); font-weight: 800; font-size: 2.3cqw; letter-spacing: .22em; text-transform: uppercase; padding: 1.1cqw 3cqw 1.1cqw 3.4cqw;
+  color: #1a1306; background: linear-gradient(120deg, #f3dc9f, var(--x-gold) 55%, #b98f3f); border-radius: 99px; box-shadow: 0 .6cqw 1.6cqw rgba(0, 0, 0, .4);
+}
+
+.xcard__main { display: flex; align-items: center; gap: 5cqw; margin: 1.6cqw 0 .6cqw; }
+.xcard__photo { flex: none; width: 24cqw; aspect-ratio: 3 / 4; border-radius: 2.2cqw; overflow: hidden; background: #222; padding: .55cqw; background: linear-gradient(160deg, var(--x-gold), var(--x-red) 60%, var(--x-red-deep)); box-shadow: 0 1.4cqw 3cqw rgba(0, 0, 0, .5); }
+.xcard__photo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 1.7cqw; background: #222; }
+.xcard__info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.xcard__label { font-size: 1.8cqw; letter-spacing: .2em; text-transform: uppercase; color: rgba(255, 255, 255, .78); font-weight: 700; }
+.xcard__name { font-family: var(--font-display); font-weight: 800; font-size: 5.4cqw; line-height: 1.08; text-transform: uppercase; margin: .6cqw 0 2.4cqw; overflow-wrap: anywhere; text-shadow: 0 .4cqw 1.2cqw rgba(0, 0, 0, .5); }
+.xcard__nra { font-family: var(--font-mono); font-weight: 600; font-size: 3.4cqw; letter-spacing: .08em; color: #FFE5A8; text-shadow: 0 .3cqw 1cqw rgba(0, 0, 0, .35); margin: .6cqw 0 2.6cqw; }
+.xcard__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; padding-top: 2cqw; border-top: 1px solid rgba(255, 255, 255, .35); }
+.xcard__meta b { display: block; margin-top: .6cqw; font-size: 2.7cqw; font-weight: 700; color: #fff; line-height: 1.2; }
+
+.xcard__bottom { display: flex; justify-content: flex-end; align-items: center; }
+.xcard__status { display: inline-flex; align-items: center; gap: 1.4cqw; font-family: var(--font-display); font-weight: 800; font-size: 2.2cqw; letter-spacing: .14em; text-transform: uppercase; color: #fff; background: rgba(0, 0, 0, .55); border: 1px solid rgba(255, 255, 255, .18); padding: 1.1cqw 2.8cqw 1.1cqw 2.2cqw; border-radius: 99px; backdrop-filter: blur(4px); }
+.xcard__status i { width: 1.9cqw; height: 1.9cqw; border-radius: 50%; background: #00E27A; box-shadow: 0 0 0 .6cqw rgba(0, 226, 122, .25), 0 0 2cqw #00E27A; }
+.xcard__status--off i { background: #ff5a5a; box-shadow: 0 0 0 .6cqw rgba(255, 90, 90, .25); }
+.xcard__tag { margin-right: auto; font-size: 1.9cqw; letter-spacing: .24em; text-transform: uppercase; color: rgba(255, 255, 255, .85); font-weight: 700; max-width: 52%; line-height: 1.5; }
+
+/* ---------- BELAKANG: tata letak (background sama dengan depan) ---------- */
+.xcard--back { display: flex; flex-direction: column; background:
+    linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .06) 48%, transparent 58%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .03) 0 2.5px, transparent 2.5px 5px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .3) 0 2.5px, transparent 2.5px 5px),
+    linear-gradient(90deg, #0b0b0d 25%, rgba(11, 11, 13, .5) 100%),
+    #0b0b0d url('../img/card-bg.png') right center / cover no-repeat; }
+.xcard__band { flex: none; height: 11cqw; display: flex; align-items: center; justify-content: space-between; padding: 0 5.6cqw; color: #fff; background: transparent; }
+.xcard__band .logo { display: block; }
+.xcard__band .logo-img--full { display: block; height: 5.4cqw; width: auto; }
+.xcard__band .logo-img--square { display: none; }
+.xcard__band span { font-size: 1.9cqw; letter-spacing: .24em; text-transform: uppercase; font-weight: 700; color: var(--x-gold); }
+
+.xcard__panels { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; padding: 3.2cqw 5.6cqw 0; }
+.xcard__panel { background: rgba(18, 18, 22, .78); color: #fff; border-radius: 1.8cqw; padding: 2.2cqw 2.6cqw; border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 .8cqw 2cqw rgba(0, 0, 0, .35); min-width: 0; }
+.xcard__panel strong { display: block; font-family: var(--font-display); font-size: 2cqw; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #FF3B52; margin-bottom: 1.2cqw; }
+.xcard__panel div { display: flex; justify-content: space-between; align-items: baseline; gap: 1.6cqw; font-size: 2.3cqw; line-height: 1.25; padding: .7cqw 0; border-bottom: 1px dashed rgba(255, 255, 255, .16); }
+.xcard__panel div:last-child { border-bottom: 0; padding-bottom: 0; }
+.xcard__panel div span { color: rgba(255, 255, 255, .6); flex: none; }
+.xcard__panel div b { font-weight: 700; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+
+.xcard__foot { flex: 1; display: flex; align-items: center; gap: 4cqw; padding: 2cqw 5.6cqw 3.4cqw; min-height: 0; }
+.xcard__qr { flex: none; width: 19cqw; aspect-ratio: 1; background: #fff; padding: 1.2cqw; border-radius: 1.8cqw; box-shadow: 0 .8cqw 2cqw rgba(0, 0, 0, .3); }
+.xcard__qr svg { display: block; width: 100%; height: 100%; }
+.xcard__rules { flex: 1; min-width: 0; font-size: 1.85cqw; line-height: 1.4; color: rgba(255, 255, 255, .92); }
+.xcard__rules strong { display: block; font-family: var(--font-display); font-size: 2cqw; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fff; margin-bottom: .6cqw; }
+.xcard__rules ul { margin: 0; padding-left: 3cqw; }
+.xcard__rules li { margin-bottom: .4cqw; }
+
+@media (prefers-reduced-motion: reduce) { .xcard-flip__inner { transition: none; } }
